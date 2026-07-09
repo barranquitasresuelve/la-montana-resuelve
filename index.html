@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La Montaña Resuelve | Directorio del Centro de P.R.</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f5f7fa;margin:0;color:#1b2a4a}
+header{background:#1b2a4a;color:white;text-align:center;padding:30px 15px}
+header h1{margin:0;font-size:2rem} header h1 span{color:#d4ac5a}
+.container{max-width:1000px;margin:20px auto;padding:0 15px}
+.filters{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.filters select,.filters input{padding:10px;border:1px solid #c7d2f0;border-radius:8px;font-size:1rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:15px}
+.card{background:white;border:1px solid #e8dfc8;border-radius:12px;padding:16px}
+.card h3{margin:0 0 5px 0;font-size:1.1rem}
+.muni{background:#eef2ff;color:#2e4480;font-size:.75rem;padding:3px 8px;border-radius:100px;display:inline-block;margin-bottom:8px}
+.desc{font-size:.9rem;color:#5a6a8a;margin:8px 0}
+.btn{display:inline-block;background:#22c55e;color:white;padding:8px 12px;border-radius:7px;text-decoration:none;font-weight:700;font-size:.9rem}
+.btn-call{background:#1b2a4a;margin-right:6px}
+.loading{text-align:center;padding:40px;color:#5a6a8a}
+</style>
+</head>
+<body>
+<header>
+  <h1>La Montaña <span>Resuelve</span></h1>
+  <p>Directorio Fijo del Centro de Puerto Rico</p>
+</header>
+<div class="container">
+  <div class="filters">
+    <input type="text" id="buscar" placeholder="Buscar servicio: plomero, comida...">
+    <select id="pueblo"><option value="">Todos los pueblos</option><option>Barranquitas</option><option>Aibonito</option><option>Orocovis</option><option>Comerío</option><option>Corozal</option><option>Naranjito</option></select>
+    <select id="categoria"><option value="">Todas las categorías</option><option>Plomero</option><option>Construcción y Mantenimiento</option><option>Mantenimiento de Casas</option><option>Limpieza</option><option>Áreas Verdes</option><option>Electricista</option><option>Refrigeración</option><option>Mecánica</option><option>Transporte</option><option>Salud y Bienestar</option><option>Comida</option><option>Eventos</option><option>Profesionales</option><option>Tecnología</option><option>Mascotas</option></select>
+  </div>
+  <div id="lista" class="grid"><div class="loading">Cargando servicios...</div></div>
+</div>
+
+<script>
+const API_URL = 'https://script.google.com/macros/s/AKfycbx5L05sTjcx9Emqk8j1Ek1lz1J52H2P9Mpc5CjbK_bNvW1R12BhpPzUAVrU9Z7P4vVhKxFFR0zBkPR01BkJF2AI/exec';
+let servicios = [];
+
+async function cargarDatos(){
+  try{
+    const res = await fetch(API_URL);
+    servicios = await res.json();
+    mostrar(servicios);
+  }catch(e){
+    document.getElementById('lista').innerHTML = '<div class="loading">Error cargando datos. Verifica tu Google Sheet.</div>';
+  }
+}
+
+function mostrar(data){
+  const lista = document.getElementById('lista');
+  if(data.length === 0){
+    lista.innerHTML = '<div class="loading">No hay servicios registrados aún.</div>';
+    return;
+  }
+  lista.innerHTML = data.map(s => `
+    <div class="card">
+      <div class="muni">${s.Pueblo || 'Pueblo'}</div>
+      <h3>${s.Nombre || 'Sin nombre'}</h3>
+      <div style="color:#d4ac5a;font-weight:700;margin:5px 0">${s.Categoria || 'Servicio'}</div>
+      <div class="desc">${s.Descripcion || 'Contacta para más información'}</div>
+      <div>
+        <a href="tel:${s.Telefono}" class="btn btn-call">📞 Llamar</a>
+        <a href="https://wa.me/1${s.Telefono?.replace(/\D/g,'')}" target="_blank" class="btn">💬 WhatsApp</a>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filtrar(){
+  const b = document.getElementById('buscar').value.toLowerCase();
+  const p = document.getElementById('pueblo').value;
+  const c = document.getElementById('categoria').value;
+  const filtro = servicios.filter(s => {
+    const txt = `${s.Nombre} ${s.Categoria} ${s.Descripcion}`.toLowerCase();
+    return txt.includes(b) && (!p || s.Pueblo === p) && (!c || s.Categoria === c);
+  });
+  mostrar(filtro);
+}
+
+document.getElementById('buscar').addEventListener('input', filtrar);
+document.getElementById('pueblo').addEventListener('change', filtrar);
+document.getElementById('categoria').addEventListener('change', filtrar);
+
+cargarDatos();
+</script>
+</body>
+</html>
