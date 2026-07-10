@@ -1,4 +1,4 @@
-   <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -7,17 +7,17 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial, sans-serif; background: #f0f7f0; padding: 20px; }
-     .header { background: #2d5016; color: white; padding: 30px 20px; text-align: center; border-radius: 10px; margin-bottom: 20px; }
-     .header h1 { font-size: 2rem; margin-bottom: 10px; }
-     .container { max-width: 800px; margin: 0 auto; }
-     .search-box { width: 100%; padding: 15px; font-size: 16px; border: 2px solid #2d5016; border-radius: 8px; margin-bottom: 20px; }
-     .negocio { background: white; padding: 20px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-left: 4px solid #4a7c2c; }
-     .negocio h3 { color: #2d5016; margin-bottom: 10px; font-size: 1.3rem; }
-     .negocio p { margin: 5px 0; color: #333; }
-     .categoria { display: inline-block; background: #4a7c2c; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; margin-top: 10px; }
-     .whatsapp { display: inline-block; background: #25D366; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 10px; font-weight: bold; }
-     .loading { text-align: center; padding: 40px; color: #666; }
-     .btn-registro { display: block; background: #d4a017; color: white; padding: 15px; text-align: center; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
+    .header { background: #2d5016; color: white; padding: 30px 20px; text-align: center; border-radius: 10px; margin-bottom: 20px; }
+    .header h1 { font-size: 2rem; margin-bottom: 10px; }
+    .container { max-width: 800px; margin: 0 auto; }
+    .search-box { width: 100%; padding: 15px; font-size: 16px; border: 2px solid #2d5016; border-radius: 8px; margin-bottom: 20px; }
+    .negocio { background: white; padding: 20px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-left: 4px solid #4a7c2c; }
+    .negocio h3 { color: #2d5016; margin-bottom: 10px; font-size: 1.3rem; }
+    .negocio p { margin: 5px 0; color: #333; }
+    .categoria { display: inline-block; background: #4a7c2c; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; margin-top: 10px; }
+    .whatsapp { display: inline-block; background: #25D366; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 10px; font-weight: bold; }
+    .loading { text-align: center; padding: 40px; color: #666; }
+    .btn-registro { display: block; background: #d4a017; color: white; padding: 15px; text-align: center; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
     </style>
 </head>
 <body>
@@ -26,7 +26,7 @@
         <p>Directorio de Servicios de Barranquitas, PR</p>
     </div>
     <div class="container">
-        <a href="https://docs.google.com/forms/d/e/1FAIpQLSdQj1aS8t6t0uXx6v0x4x5x5x5x5x5/viewform" target="_blank" class="btn-registro">
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLSevPZ2qJqY5k8h3m9n2b4c6d8f0g2h4j6k8l0/viewform" target="_blank" class="btn-registro">
             ➕ REGISTRA TU NEGOCIO GRATIS
         </a>
         <input type="text" class="search-box" id="buscador" placeholder="Busca: plomero, comida, mecánico...">
@@ -36,15 +36,18 @@
     </div>
     <script>
         const SHEET_ID = '1HfQxwQUfR9k_4ngszBLvEAuKzJS4PuIaFnhVCQQhwSQ';
-        const GID = '0'; // Form Responses 2 suele ser gid=0
-        const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`;
+        // Usamos CSV directo sin GID para que coja la pestaña activa
+        const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
         
         let negocios = [];
 
         fetch(URL)
-         .then(res => res.text())
-         .then(csvText => {
-                const lines = csvText.split('\n');
+        .then(res => {
+            if (!res.ok) throw new Error('Sheet no público');
+            return res.text();
+         })
+        .then(csvText => {
+                const lines = csvText.split('\n').filter(l => l.trim());
                 const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
                 
                 negocios = lines.slice(1).map(line => {
@@ -54,12 +57,15 @@
                         obj[header] = values[i]? values[i].replace(/"/g, '').trim() : '';
                     });
                     return obj;
-                }).filter(n => n['Nombre del Negocio'] || n['¿Cuál es el nombre de tu negocio o servicio?']);
+                }).filter(n => {
+                    const nombre = n['Nombre del Negocio'] || n['¿Cuál es el nombre de tu negocio o servicio?'];
+                    return nombre && nombre!== '';
+                });
                 
                 mostrarNegocios(negocios);
             })
-         .catch(err => {
-                document.getElementById('lista-negocios').innerHTML = '<div class="loading">Error cargando datos. Verifica que el Sheet sea público.</div>';
+        .catch(err => {
+                document.getElementById('lista-negocios').innerHTML = '<div class="loading">Error: Haz el Sheet público en Compartir > Cualquier persona con el enlace.</div>';
                 console.error(err);
             });
 
@@ -75,12 +81,13 @@
                 const telefono = n['Teléfono Principal (WhatsApp preferido)'] || n['Teléfono'] || n['Teléfono Principal'] || '';
                 const descripcion = n['Descripción Corta'] || n['Descripción de tu Servicio'] || n['Describe brevemente qué ofreces'] || '';
                 const area = n['¿En qué pueblo o área ofreces tu servicio principalmente?'] || n['Área de Servicio'] || 'Barranquitas';
+                const telLimpio = telefono.replace(/\D/g,'');
                 return `
                     <div class="negocio">
                         <h3>${nombre}</h3>
                         <p><strong>📍 Área:</strong> ${area}</p>
                         <p>${descripcion}</p>
-                        ${telefono? `<a href="https://wa.me/1${telefono.replace(/\D/g,'')}" class="whatsapp" target="_blank">💬 WhatsApp: ${telefono}</a>` : ''}
+                        ${telLimpio? `<a href="https://wa.me/1${telLimpio}" class="whatsapp" target="_blank">💬 WhatsApp: ${telefono}</a>` : ''}
                         <br><span class="categoria">${categoria}</span>
                     </div>
                 `;
@@ -99,4 +106,5 @@
         });
     </script>
 </body>
-</html>             
+</html>   
+        
