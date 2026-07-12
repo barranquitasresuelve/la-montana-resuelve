@@ -6,15 +6,15 @@
     <title>La Montaña Resuelve - Directorio de Servicios</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 0; background: #f4f4f4; }
-    .header { background: #2c5f2d; color: white; padding: 20px; text-align: center; }
-    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-    .btn-registro { 
+   .header { background: #2c5f2d; color: white; padding: 20px; text-align: center; }
+   .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+   .btn-registro { 
             display: block; width: 90%; max-width: 300px; margin: 20px auto; 
             padding: 15px; background: #ff6b35; color: white; text-align: center; 
             text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 18px;
         }
-    .negocio { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-    .whatsapp { background: #25D366; color: white; padding: 8px 12px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 10px; }
+   .negocio { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+   .whatsapp { background: #25D366; color: white; padding: 8px 12px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -30,9 +30,9 @@
     </div>
 
     <script>
-        const SHEET_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS6SiGeP2YhPe6X8InDjvW6FeTYDtB9yDGfXy-P86oyqJ-k5De0UIIvHr8Sw9J3O2DNf2K5TwTUYk/pub?gid=1194826649&single=true&output=csv';
+        const SHEET_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS65iGePl2YHPeeX81nDjvW6FeTYDtB9yDGfXy-P86oyqJ-k5De0UIlmvH8Sw9J30ZDNnf2KSTwTUYK/pub?gid=1194828649&single=true&output=csv';
         
-        // Intenta 3 métodos diferentes
+        // Intenta 3 métodos diferentes por si Google bloquea
         async function cargarNegocios() {
             const urls = [
                 'https://api.allorigins.win/raw?url=' + encodeURIComponent(SHEET_CSV),
@@ -44,7 +44,7 @@
                 try {
                     const response = await fetch(url);
                     const data = await response.text();
-                    if (data.includes('Prueb Plomero')) {
+                    if (data.includes('Prueb') || data.includes('Nombre')) {
                         mostrarNegocios(data);
                         return;
                     }
@@ -52,7 +52,7 @@
                     console.log('Intento falló, probando siguiente...');
                 }
             }
-            document.getElementById('directorio').innerHTML = 'Error cargando. Espera 5 min y refresca con Ctrl+F5';
+            document.getElementById('directorio').innerHTML = 'Error cargando. Refresca con Ctrl+F5 en 2 minutos';
         }
         
         function mostrarNegocios(data) {
