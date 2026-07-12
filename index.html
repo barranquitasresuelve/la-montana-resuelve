@@ -31,29 +31,28 @@
 
     <script>
         const SHEET_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS6SiGeP2YhPe6X8InDjvW6FeTYDtB9yDGfXy-P86oyqJ-k5De0UIIvHr8Sw9J3O2DNf2K5TwTUYk/pub?gid=1194826649&single=true&output=csv';
-        const PROXY_URL = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(SHEET_CSV);
+        const PROXY = 'https://api.allorigins.win/raw?url=';
         
-        fetch(PROXY_URL)
-         .then(response => response.text())
-         .then(data => {
+        fetch(PROXY + encodeURIComponent(SHEET_CSV))
+        .then(r => r.text())
+        .then(data => {
                 const rows = data.split('\n').slice(1);
                 let html = '';
                 rows.forEach(row => {
-                    // Arregla comas dentro de los campos
                     const cols = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
-                    const cleanCols = cols.map(col => col.replace(/^"|"$/g, '').trim());
+                    const c = cols.map(col => col.replace(/^"|"$/g, '').trim());
                     
-                    if(cleanCols[1] && cleanCols[1]!== '') {
-                        const nombre = cleanCols[1];
-                        const whatsapp = cleanCols[2]? cleanCols[2].replace(/\D/g,'') : '';
-                        const categoria = cleanCols[3] || 'General';
-                        const descripcion = cleanCols[4] || '';
+                    if(c[1] && c[1]!== '') {
+                        const nombre = c[1];
+                        const whatsapp = c[2]? c[2].replace(/\D/g,'') : '';
+                        const categoria = c[3] || 'General';
+                        const desc = c[4] || '';
                         
                         html += `
                             <div class="negocio">
                                 <h3>${nombre}</h3>
                                 <p><strong>Categoría:</strong> ${categoria}</p>
-                                <p>${descripcion}</p>
+                                <p>${desc}</p>
                                 ${whatsapp? `<a href="https://wa.me/1${whatsapp}" class="whatsapp" target="_blank">💬 WhatsApp</a>` : ''}
                             </div>
                         `;
@@ -61,9 +60,8 @@
                 });
                 document.getElementById('directorio').innerHTML = html || 'Aún no hay negocios registrados. ¡Sé el primero!';
             })
-         .catch(error => {
-                document.getElementById('directorio').innerHTML = 'Error cargando el directorio. Verifica que el Sheet sea público.';
-                console.log(error);
+        .catch(e => {
+                document.getElementById('directorio').innerHTML = 'Error cargando. Espera 5 min y refresca la página.';
             });
     </script>
 </body>
