@@ -6,15 +6,16 @@
     <title>La Montaña Resuelve - Directorio de Servicios</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 0; background: #f4f4f4; }
-   .header { background: #2c5f2d; color: white; padding: 20px; text-align: center; }
-   .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-   .btn-registro { 
+  .header { background: #2c5f2d; color: white; padding: 20px; text-align: center; }
+  .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+  .btn-registro { 
             display: block; width: 90%; max-width: 300px; margin: 20px auto; 
             padding: 15px; background: #ff6b35; color: white; text-align: center; 
             text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 18px;
         }
-   .negocio { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-   .whatsapp { background: #25D366; color: white; padding: 8px 12px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 10px; }
+  .negocio { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+  .whatsapp { background: #25D366; color: white; padding: 8px 12px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 10px; }
+  .footer { text-align: center; padding: 20px; color: #666; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -28,11 +29,13 @@
         </a>
         <div id="directorio">Cargando negocios...</div>
     </div>
+    <div class="footer">
+        Hecho con ❤️ para Barranquitas | La Montaña Resuelve 2026
+    </div>
 
     <script>
         const SHEET_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS65iGePl2YHPeeX81nDjvW6FeTYDtB9yDGfXy-P86oyqJ-k5De0UIlmvH8Sw9J30ZDNnf2KSTwTUYK/pub?gid=1194828649&single=true&output=csv';
         
-        // Intenta 3 métodos diferentes por si Google bloquea
         async function cargarNegocios() {
             const urls = [
                 'https://api.allorigins.win/raw?url=' + encodeURIComponent(SHEET_CSV),
@@ -44,7 +47,7 @@
                 try {
                     const response = await fetch(url);
                     const data = await response.text();
-                    if (data.includes('Prueb') || data.includes('Nombre')) {
+                    if (data.includes('Prueb') || data.includes('Bqtas')) {
                         mostrarNegocios(data);
                         return;
                     }
@@ -52,17 +55,18 @@
                     console.log('Intento falló, probando siguiente...');
                 }
             }
-            document.getElementById('directorio').innerHTML = 'Error cargando. Refresca con Ctrl+F5 en 2 minutos';
+            document.getElementById('directorio').innerHTML = 'Error cargando. Refresca con Ctrl+F5';
         }
         
         function mostrarNegocios(data) {
-            const rows = data.split('\n').slice(1);
+            const rows = data.split('\n').slice(1); // <-- Esta línea quita el header
             let html = '';
             rows.forEach(row => {
                 const cols = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
                 const c = cols.map(col => col.replace(/^"|"$/g, '').trim());
                 
-                if(c[1] && c[1]!== '') {
+                // Solo muestra si tiene nombre de negocio
+                if(c[1] && c[1]!== '' && c[1]!== 'Nombre del Negocio') {
                     const nombre = c[1];
                     const whatsapp = c[2]? c[2].replace(/\D/g,'') : '';
                     const categoria = c[3] || 'General';
