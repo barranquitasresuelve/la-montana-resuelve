@@ -6,15 +6,15 @@
     <title>La Montaña Resuelve - Directorio de Servicios</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 0; background: #f4f4f4; }
-     .header { background: #2c5f2d; color: white; padding: 20px; text-align: center; }
-     .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-     .btn-registro { 
+    .header { background: #2c5f2d; color: white; padding: 20px; text-align: center; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .btn-registro { 
             display: block; width: 90%; max-width: 300px; margin: 20px auto; 
             padding: 15px; background: #ff6b35; color: white; text-align: center; 
             text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 18px;
         }
-     .negocio { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-     .whatsapp { background: #25D366; color: white; padding: 8px 12px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 10px; }
+    .negocio { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .whatsapp { background: #25D366; color: white; padding: 8px 12px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -31,38 +31,57 @@
 
     <script>
         const SHEET_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS6SiGeP2YhPe6X8InDjvW6FeTYDtB9yDGfXy-P86oyqJ-k5De0UIIvHr8Sw9J3O2DNf2K5TwTUYk/pub?gid=1194826649&single=true&output=csv';
-        const PROXY = 'https://api.allorigins.win/raw?url=';
         
-        fetch(PROXY + encodeURIComponent(SHEET_CSV))
-        .then(r => r.text())
-        .then(data => {
-                const rows = data.split('\n').slice(1);
-                let html = '';
-                rows.forEach(row => {
-                    const cols = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
-                    const c = cols.map(col => col.replace(/^"|"$/g, '').trim());
-                    
-                    if(c[1] && c[1]!== '') {
-                        const nombre = c[1];
-                        const whatsapp = c[2]? c[2].replace(/\D/g,'') : '';
-                        const categoria = c[3] || 'General';
-                        const desc = c[4] || '';
-                        
-                        html += `
-                            <div class="negocio">
-                                <h3>${nombre}</h3>
-                                <p><strong>Categoría:</strong> ${categoria}</p>
-                                <p>${desc}</p>
-                                ${whatsapp? `<a href="https://wa.me/1${whatsapp}" class="whatsapp" target="_blank">💬 WhatsApp</a>` : ''}
-                            </div>
-                        `;
+        // Intenta 3 métodos diferentes
+        async function cargarNegocios() {
+            const urls = [
+                'https://api.allorigins.win/raw?url=' + encodeURIComponent(SHEET_CSV),
+                'https://corsproxy.io/?' + encodeURIComponent(SHEET_CSV),
+                SHEET_CSV
+            ];
+            
+            for (let url of urls) {
+                try {
+                    const response = await fetch(url);
+                    const data = await response.text();
+                    if (data.includes('Prueb Plomero')) {
+                        mostrarNegocios(data);
+                        return;
                     }
-                });
-                document.getElementById('directorio').innerHTML = html || 'Aún no hay negocios registrados. ¡Sé el primero!';
-            })
-        .catch(e => {
-                document.getElementById('directorio').innerHTML = 'Error cargando. Espera 5 min y refresca la página.';
+                } catch (e) {
+                    console.log('Intento falló, probando siguiente...');
+                }
+            }
+            document.getElementById('directorio').innerHTML = 'Error cargando. Espera 5 min y refresca con Ctrl+F5';
+        }
+        
+        function mostrarNegocios(data) {
+            const rows = data.split('\n').slice(1);
+            let html = '';
+            rows.forEach(row => {
+                const cols = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
+                const c = cols.map(col => col.replace(/^"|"$/g, '').trim());
+                
+                if(c[1] && c[1]!== '') {
+                    const nombre = c[1];
+                    const whatsapp = c[2]? c[2].replace(/\D/g,'') : '';
+                    const categoria = c[3] || 'General';
+                    const desc = c[4] || '';
+                    
+                    html += `
+                        <div class="negocio">
+                            <h3>${nombre}</h3>
+                            <p><strong>Categoría:</strong> ${categoria}</p>
+                            <p>${desc}</p>
+                            ${whatsapp? `<a href="https://wa.me/1${whatsapp}" class="whatsapp" target="_blank">💬 WhatsApp</a>` : ''}
+                        </div>
+                    `;
+                }
             });
+            document.getElementById('directorio').innerHTML = html || 'Aún no hay negocios registrados. ¡Sé el primero!';
+        }
+        
+        cargarNegocios();
     </script>
 </body>
 </html>
