@@ -3,21 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>La Montaña Resuelve - Directorio de Servicios Barranquitas</title>
+    <title>La Montaña Resuelve - Directorio de Servicios</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; background: #f0f7f0; padding: 20px; }
-    .header { background: #2d5016; color: white; padding: 30px 20px; text-align: center; border-radius: 10px; margin-bottom: 20px; }
-    .header h1 { font-size: 2rem; margin-bottom: 10px; }
-    .container { max-width: 800px; margin: 0 auto; }
-    .search-box { width: 100%; padding: 15px; font-size: 16px; border: 2px solid #2d5016; border-radius: 8px; margin-bottom: 20px; }
-    .negocio { background: white; padding: 20px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-left: 4px solid #4a7c2c; }
-    .negocio h3 { color: #2d5016; margin-bottom: 10px; font-size: 1.3rem; }
-    .negocio p { margin: 5px 0; color: #333; }
-    .categoria { display: inline-block; background: #4a7c2c; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; margin-top: 10px; }
-    .whatsapp { display: inline-block; background: #25D366; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 10px; font-weight: bold; }
-    .loading { text-align: center; padding: 40px; color: #666; }
-    .btn-registro { display: block; background: #d4a017; color: white; padding: 15px; text-align: center; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
+        body { font-family: Arial, sans-serif; margin: 0; background: #f4f4f4; }
+      .header { background: #2c5f2d; color: white; padding: 20px; text-align: center; }
+      .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+      .btn-registro { 
+            display: block; width: 90%; max-width: 300px; margin: 20px auto; 
+            padding: 15px; background: #ff6b35; color: white; text-align: center; 
+            text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 18px;
+        }
+      .negocio { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+      .whatsapp { background: #25D366; color: white; padding: 8px 12px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -26,85 +23,38 @@
         <p>Directorio de Servicios de Barranquitas, PR</p>
     </div>
     <div class="container">
-        <a href="https://docs.google.com/forms/d/e/1FAIpQLSevPZ2qJqY5k8h3m9n2b4c6d8f0g2h4j6k8l0/viewform" target="_blank" class="btn-registro">
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLScPm8hrgftEpNIgTon3Z7dABIziWXfS1yLPoHVlowlq2WpmSg/viewform" target="_blank" class="btn-registro">
             ➕ REGISTRA TU NEGOCIO GRATIS
         </a>
-        <input type="text" class="search-box" id="buscador" placeholder="Busca: plomero, comida, mecánico...">
-        <div id="lista-negocios">
-            <div class="loading">Cargando servicios de Barranquitas...</div>
-        </div>
+        <div id="directorio">Cargando negocios...</div>
     </div>
+
     <script>
-        const SHEET_ID = '1HfQxwQUfR9k_4ngszBLvEAuKzJS4PuIaFnhVCQQhwSQ';
-        // Usamos CSV directo sin GID para que coja la pestaña activa
-        const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
+        const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS6SiGeP2YhPe6X8InDjvW6FeTYDtB9yDGfXy-P86oyqJ-k5De0UIIvHr8Sw9J3O2DNf2K5TwTUYk/pub?gid=1194826649&single=true&output=csv';
         
-        let negocios = [];
-
-        fetch(URL)
-        .then(res => {
-            if (!res.ok) throw new Error('Sheet no público');
-            return res.text();
-         })
-        .then(csvText => {
-                const lines = csvText.split('\n').filter(l => l.trim());
-                const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
-                
-                negocios = lines.slice(1).map(line => {
-                    const values = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
-                    const obj = {};
-                    headers.forEach((header, i) => {
-                        obj[header] = values[i]? values[i].replace(/"/g, '').trim() : '';
-                    });
-                    return obj;
-                }).filter(n => {
-                    const nombre = n['Nombre del Negocio'] || n['¿Cuál es el nombre de tu negocio o servicio?'];
-                    return nombre && nombre!== '';
+        fetch(SHEET_URL)
+          .then(response => response.text())
+          .then(data => {
+                const rows = data.split('\n').slice(1);
+                let html = '';
+                rows.forEach(row => {
+                    const cols = row.split(',');
+                    if(cols[1] && cols[1].trim()!== '') {
+                        html += `
+                            <div class="negocio">
+                                <h3>${cols[1]}</h3>
+                                <p><strong>Categoría:</strong> ${cols[3] || 'General'}</p>
+                                <p>${cols[4] || ''}</p>
+                                <a href="https://wa.me/1${cols[2]}" class="whatsapp" target="_blank">💬 WhatsApp</a>
+                            </div>
+                        `;
+                    }
                 });
-                
-                mostrarNegocios(negocios);
+                document.getElementById('directorio').innerHTML = html || 'Aún no hay negocios registrados. ¡Sé el primero!';
             })
-        .catch(err => {
-                document.getElementById('lista-negocios').innerHTML = '<div class="loading">Error: Haz el Sheet público en Compartir > Cualquier persona con el enlace.</div>';
-                console.error(err);
+          .catch(error => {
+                document.getElementById('directorio').innerHTML = 'Error cargando el directorio. Refresca la página.';
             });
-
-        function mostrarNegocios(lista) {
-            const contenedor = document.getElementById('lista-negocios');
-            if (lista.length === 0) {
-                contenedor.innerHTML = '<div class="loading">No hay negocios registrados aún. ¡Sé el primero!</div>';
-                return;
-            }
-            contenedor.innerHTML = lista.map(n => {
-                const nombre = n['Nombre del Negocio'] || n['¿Cuál es el nombre de tu negocio o servicio?'] || 'Sin nombre';
-                const categoria = n['Categoría Principal'] || n['Categoría'] || n['¿Qué categoría describe mejor tu servicio?'] || 'General';
-                const telefono = n['Teléfono Principal (WhatsApp preferido)'] || n['Teléfono'] || n['Teléfono Principal'] || '';
-                const descripcion = n['Descripción Corta'] || n['Descripción de tu Servicio'] || n['Describe brevemente qué ofreces'] || '';
-                const area = n['¿En qué pueblo o área ofreces tu servicio principalmente?'] || n['Área de Servicio'] || 'Barranquitas';
-                const telLimpio = telefono.replace(/\D/g,'');
-                return `
-                    <div class="negocio">
-                        <h3>${nombre}</h3>
-                        <p><strong>📍 Área:</strong> ${area}</p>
-                        <p>${descripcion}</p>
-                        ${telLimpio? `<a href="https://wa.me/1${telLimpio}" class="whatsapp" target="_blank">💬 WhatsApp: ${telefono}</a>` : ''}
-                        <br><span class="categoria">${categoria}</span>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        document.getElementById('buscador').addEventListener('input', (e) => {
-            const texto = e.target.value.toLowerCase();
-            const filtrados = negocios.filter(n => {
-                const nombre = (n['Nombre del Negocio'] || n['¿Cuál es el nombre de tu negocio o servicio?'] || '').toLowerCase();
-                const categoria = (n['Categoría Principal'] || n['Categoría'] || n['¿Qué categoría describe mejor tu servicio?'] || '').toLowerCase();
-                const descripcion = (n['Descripción Corta'] || n['Descripción de tu Servicio'] || n['Describe brevemente qué ofreces'] || '').toLowerCase();
-                return nombre.includes(texto) || categoria.includes(texto) || descripcion.includes(texto);
-            });
-            mostrarNegocios(filtrados);
-        });
     </script>
 </body>
-</html>   
-        
+</html>
