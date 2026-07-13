@@ -19,6 +19,7 @@
 .pueblo { color: #2c5f2d; font-weight: bold; margin: 5px 0; }
 .dueno { color: #666; font-size: 14px; margin: 5px 0; }
 .footer { text-align: center; padding: 20px; color: #666; font-size: 14px; }
+.contador { text-align: center; margin: 10px 0; font-weight: bold; color: #2c5f2d; }
     </style>
 </head>
 <body>
@@ -30,6 +31,7 @@
         <a href="https://docs.google.com/forms/d/e/1FAIpQLScPm8hrgftEpNIgTon3Z7dABIziWXfS1yLPoHVlowlq2WpmSg/viewform" target="_blank" class="btn-registro">
             ➕ REGISTRA TU NEGOCIO GRATIS
         </a>
+        <div id="contador" class="contador"></div>
         <div id="directorio">Cargando negocios...</div>
     </div>
     <div class="footer">
@@ -71,7 +73,7 @@
                 const c = cols.map(col => col.replace(/^"|"$/g, '').trim());
                 
                 // 0:Timestamp | 1:Nombre Negocio | 2:Dueño | 3:Pueblo | 4:Categoría | 5:Servicios | 6:Teléfono | 7:WhatsApp
-                let nombre = c[1];
+                const nombre = c[1];
                 const dueno = c[2];
                 const pueblo = c[3];
                 const categoria = c[4];
@@ -79,36 +81,28 @@
                 const telefono = c[6]? c[6].replace(/\D/g,'') : '';
                 const whatsapp = c[7]? c[7].replace(/\D/g,'') : '';
                 
-                // REGLA NUEVA: Si no hay nombre de negocio, usa el nombre del dueño
-                if(!nombre || nombre === '' || nombre === 'Por confirmar') {
-                    nombre = dueno;
+                // REGLA ESTRICTA: Solo muestra si tiene NOMBRE y AL MENOS UN TELÉFONO
+                const tieneNombre = nombre && nombre!== '' && nombre!== 'Por confirmar' && nombre!== 'Nombre del Negocio';
+                const tieneTelefono = (telefono && telefono.length >= 10) || (whatsapp && whatsapp.length >= 10);
+                
+                if(tieneNombre && tieneTelefono) {
+                    contador++;
+                    html += `
+                        <div class="negocio">
+                            <h3>${nombre}</h3>
+                            ${pueblo && pueblo!== 'Por confirmar'? `<p class="pueblo">📍 ${pueblo}</p>` : ''}
+                            ${categoria? `<p><strong>Categoría:</strong> ${categoria}</p>` : ''}
+                            ${servicios? `<p>${servicios}</p>` : ''}
+                            ${dueno && dueno!== 'Por confirmar'? `<p class="dueno"><strong>Contacto:</strong> ${dueno}</p>` : ''}
+                            ${telefono? `<a href="tel:+1${telefono}" class="telefono">📞 ${c[6]}</a>` : ''}
+                            ${whatsapp? `<a href="https://wa.me/1${whatsapp}" class="whatsapp" target="_blank">💬 WhatsApp</a>` : ''}
+                        </div>
+                    `;
                 }
-                
-                // Si después de todo no hay nombre ni dueño, salta la fila
-                if(!nombre || nombre === '' || nombre === 'Nombre del Negocio' || nombre === 'Categoría Principal') {
-                    return;
-                }
-                
-                // Usa el número que esté disponible: WhatsApp primero, si no Teléfono
-                const numeroContacto = whatsapp || telefono;
-                
-                contador++;
-                html += `
-                    <div class="negocio">
-                        <h3>${nombre}</h3>
-                        ${pueblo && pueblo!== 'Por confirmar'? `<p class="pueblo">📍 ${pueblo}</p>` : ''}
-                        ${categoria? `<p><strong>Categoría:</strong> ${categoria}</p>` : ''}
-                        ${servicios? `<p>${servicios}</p>` : ''}
-                        ${dueno && dueno!== nombre && dueno!== 'Por confirmar'? `<p class="dueno"><strong>Contacto:</strong> ${dueno}</p>` : ''}
-                        ${telefono? `<a href="tel:+1${telefono}" class="telefono">📞 ${c[6]}</a>` : ''}
-                        ${whatsapp? `<a href="https://wa.me/1${whatsapp}" class="whatsapp" target="_blank">💬 WhatsApp</a>` : ''}
-                        ${!telefono &&!whatsapp? `<p style="color:#999;">Sin teléfono registrado</p>` : ''}
-                    </div>
-                `;
             });
             
-            document.getElementById('directorio').innerHTML = html || 'Aún no hay negocios registrados. ¡Sé el primero!';
-            console.log(`Mostrando ${contador} negocios`);
+            document.getElementById('contador').innerHTML = `Mostrando ${contador} negocios verificados`;
+            document.getElementById('directorio').innerHTML = html || 'No hay negocios con información completa. ¡Registra el tuyo!';
         }
         
         cargarNegocios();
