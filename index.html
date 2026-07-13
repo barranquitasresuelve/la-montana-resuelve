@@ -50,7 +50,7 @@
                 try {
                     const response = await fetch(url);
                     const data = await response.text();
-                    if (data.includes('Prueb') || data.includes('Bqtas') || data.includes('Nombre')) {
+                    if (data.includes('Nombre del Negocio')) {
                         mostrarNegocios(data);
                         return;
                     }
@@ -62,7 +62,7 @@
         }
         
         function mostrarNegocios(data) {
-            const rows = data.split('\n').slice(1); // Salta la fila de títulos
+            const rows = data.split('\n').slice(1);
             let html = '';
             let contador = 0;
             
@@ -70,9 +70,8 @@
                 const cols = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
                 const c = cols.map(col => col.replace(/^"|"$/g, '').trim());
                 
-                // Tu orden real de columnas:
                 // 0:Timestamp | 1:Nombre Negocio | 2:Dueño | 3:Pueblo | 4:Categoría | 5:Servicios | 6:Teléfono | 7:WhatsApp
-                const nombre = c[1];
+                let nombre = c[1];
                 const dueno = c[2];
                 const pueblo = c[3];
                 const categoria = c[4];
@@ -80,11 +79,18 @@
                 const telefono = c[6]? c[6].replace(/\D/g,'') : '';
                 const whatsapp = c[7]? c[7].replace(/\D/g,'') : '';
                 
-                // REGLA #1: Si no hay nombre de negocio, SALTA la fila completa
-                // REGLA #2: Si dice "Categoría Principal" o "Nombre del Negocio", también la salta
-                if(!nombre || nombre === '' || nombre === 'Nombre del Negocio' || nombre === 'Categoría Principal' || nombre === 'Por confirmar') {
-                    return; // No mostrar esta fila
+                // REGLA NUEVA: Si no hay nombre de negocio, usa el nombre del dueño
+                if(!nombre || nombre === '' || nombre === 'Por confirmar') {
+                    nombre = dueno;
                 }
+                
+                // Si después de todo no hay nombre ni dueño, salta la fila
+                if(!nombre || nombre === '' || nombre === 'Nombre del Negocio' || nombre === 'Categoría Principal') {
+                    return;
+                }
+                
+                // Usa el número que esté disponible: WhatsApp primero, si no Teléfono
+                const numeroContacto = whatsapp || telefono;
                 
                 contador++;
                 html += `
@@ -93,9 +99,10 @@
                         ${pueblo && pueblo!== 'Por confirmar'? `<p class="pueblo">📍 ${pueblo}</p>` : ''}
                         ${categoria? `<p><strong>Categoría:</strong> ${categoria}</p>` : ''}
                         ${servicios? `<p>${servicios}</p>` : ''}
-                        ${dueno && dueno!== 'Por confirmar'? `<p class="dueno"><strong>Contacto:</strong> ${dueno}</p>` : ''}
+                        ${dueno && dueno!== nombre && dueno!== 'Por confirmar'? `<p class="dueno"><strong>Contacto:</strong> ${dueno}</p>` : ''}
                         ${telefono? `<a href="tel:+1${telefono}" class="telefono">📞 ${c[6]}</a>` : ''}
                         ${whatsapp? `<a href="https://wa.me/1${whatsapp}" class="whatsapp" target="_blank">💬 WhatsApp</a>` : ''}
+                        ${!telefono &&!whatsapp? `<p style="color:#999;">Sin teléfono registrado</p>` : ''}
                     </div>
                 `;
             });
