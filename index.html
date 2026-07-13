@@ -3,25 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>La Montaña Resuelve - Directorio de Servicios</title>
+    <title>La Montaña Resuelve - Directorio de Servicios de Barranquitas Resuelve</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 0; background: #f4f4f4; }
-  .header { background: #2c5f2d; color: white; padding: 20px; text-align: center; }
-  .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-  .btn-registro { 
+.header { background: #2c5f2d; color: white; padding: 20px; text-align: center; }
+.container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+.btn-registro { 
             display: block; width: 90%; max-width: 300px; margin: 20px auto; 
             padding: 15px; background: #ff6b35; color: white; text-align: center; 
             text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 18px;
         }
-  .negocio { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-  .whatsapp { background: #25D366; color: white; padding: 8px 12px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 10px; }
-  .footer { text-align: center; padding: 20px; color: #666; font-size: 14px; }
+.negocio { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+.whatsapp { background: #25D366; color: white; padding: 8px 12px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 5px 5px 0 0; }
+.telefono { background: #007bff; color: white; padding: 8px 12px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 5px 5px 0 0; }
+.pueblo { color: #2c5f2d; font-weight: bold; margin: 5px 0; }
+.footer { text-align: center; padding: 20px; color: #666; font-size: 14px; }
     </style>
 </head>
 <body>
     <div class="header">
         <h1>🏔️ La Montaña Resuelve</h1>
-        <p>Directorio de Servicios de Barranquitas, PR</p>
+        <p>Directorio de Servicios de Barranquitas Resuelve</p>
     </div>
     <div class="container">
         <a href="https://docs.google.com/forms/d/e/1FAIpQLScPm8hrgftEpNIgTon3Z7dABIziWXfS1yLPoHVlowlq2WpmSg/viewform" target="_blank" class="btn-registro">
@@ -59,24 +61,32 @@
         }
         
         function mostrarNegocios(data) {
-            const rows = data.split('\n').slice(1); // <-- Esta línea quita el header
+            const rows = data.split('\n').slice(1); // Quita la fila de títulos
             let html = '';
             rows.forEach(row => {
                 const cols = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
                 const c = cols.map(col => col.replace(/^"|"$/g, '').trim());
                 
+                // Columnas según tu Sheet: 
+                // 0:Timestamp | 1:Nombre Negocio | 2:Dueño | 3:Pueblo | 4:Categoría | 5:Servicios | 6:Teléfono | 7:WhatsApp
+                const nombre = c[1];
+                const dueno = c[2];
+                const pueblo = c[3];
+                const categoria = c[4];
+                const servicios = c[5];
+                const telefono = c[6]? c[6].replace(/\D/g,'') : '';
+                const whatsapp = c[7]? c[7].replace(/\D/g,'') : '';
+                
                 // Solo muestra si tiene nombre de negocio
-                if(c[1] && c[1]!== '' && c[1]!== 'Nombre del Negocio') {
-                    const nombre = c[1];
-                    const whatsapp = c[2]? c[2].replace(/\D/g,'') : '';
-                    const categoria = c[3] || 'General';
-                    const desc = c[4] || '';
-                    
+                if(nombre && nombre!== '' && nombre!== 'Nombre del Negocio') {
                     html += `
                         <div class="negocio">
                             <h3>${nombre}</h3>
-                            <p><strong>Categoría:</strong> ${categoria}</p>
-                            <p>${desc}</p>
+                            <p class="pueblo">📍 ${pueblo || 'Barranquitas'}</p>
+                            <p><strong>Categoría:</strong> ${categoria || 'General'}</p>
+                            <p>${servicios || ''}</p>
+                            ${dueno && dueno!== 'Por confirmar'? `<p><strong>Contacto:</strong> ${dueno}</p>` : ''}
+                            ${telefono? `<a href="tel:+1${telefono}" class="telefono">📞 Llamar</a>` : ''}
                             ${whatsapp? `<a href="https://wa.me/1${whatsapp}" class="whatsapp" target="_blank">💬 WhatsApp</a>` : ''}
                         </div>
                     `;
