@@ -64,25 +64,47 @@
         }
         
         function mostrarNegocios(data) {
-            const rows = data.split('\n').slice(1);
+            const rows = data.split('\n');
+            const headers = rows[0].split(',').map(h => h.replace(/^"|"$/g, '').trim());
+            console.log('Columnas detectadas:', headers);
+            
+            // Busca automático en qué columna está cada cosa
+            const idxNombre = headers.indexOf('Nombre del Negocio');
+            const idxDueno = headers.indexOf('Nombre del Dueño/Contacto');
+            const idxPueblo = headers.indexOf('Pueblo');
+            const idxCategoria = headers.indexOf('Categoría Principal');
+            const idxServicios = headers.indexOf('¿Qué servicios ofreces?');
+            const idxTelefono = headers.indexOf('Teléfono principal');
+            const idxWhatsapp = headers.indexOf('WhatsApp');
+            
+            console.log('Índices:', {idxNombre, idxDueno, idxPueblo, idxCategoria, idxServicios, idxTelefono, idxWhatsapp});
+            
             let html = '';
             let contador = 0;
+            let saltados = 0;
             
-            rows.forEach(row => {
+            rows.slice(1).forEach(row => {
                 const cols = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
                 const c = cols.map(col => col.replace(/^"|"$/g, '').trim());
                 
-                // 0:Timestamp | 1:Nombre Negocio | 2:Dueño | 3:Pueblo | 4:Categoría | 5:Servicios | 6:Teléfono | 7:WhatsApp
-                const nombre = c[1];
-                const dueno = c[2];
-                const pueblo = c[3];
-                const categoria = c[4];
-                const servicios = c[5];
-                const telefono = c[6]? c[6].replace(/\D/g,'') : '';
-                const whatsapp = c[7]? c[7].replace(/\D/g,'') : '';
+                let nombre = c[idxNombre] || '';
+                const dueno = c[idxDueno] || '';
+                const pueblo = c[idxPueblo] || '';
+                const categoria = c[idxCategoria] || '';
+                const servicios = c[idxServicios] || '';
+                const telefonoRaw = c[idxTelefono] || '';
+                const whatsappRaw = c[idxWhatsapp] || '';
                 
-                // REGLA ESTRICTA: Solo muestra si tiene NOMBRE y AL MENOS UN TELÉFONO
-                const tieneNombre = nombre && nombre!== '' && nombre!== 'Por confirmar' && nombre!== 'Nombre del Negocio';
+                const telefono = telefonoRaw.replace(/\D/g,'');
+                const whatsapp = whatsappRaw.replace(/\D/g,'');
+                
+                // Si no hay nombre de negocio, usa el del dueño
+                if(!nombre || nombre === 'Por confirmar') {
+                    nombre = dueno;
+                }
+                
+                // REGLA ESTRICTA: Necesita nombre Y al menos un teléfono de 10 dígitos
+                const tieneNombre = nombre && nombre.length > 2 &&!['Barranquitas','Corozal','Aibonito','Orocovis','Comerío','Naranjito','Todos','Área Central PR'].includes(nombre);
                 const tieneTelefono = (telefono && telefono.length >= 10) || (whatsapp && whatsapp.length >= 10);
                 
                 if(tieneNombre && tieneTelefono) {
@@ -93,15 +115,17 @@
                             ${pueblo && pueblo!== 'Por confirmar'? `<p class="pueblo">📍 ${pueblo}</p>` : ''}
                             ${categoria? `<p><strong>Categoría:</strong> ${categoria}</p>` : ''}
                             ${servicios? `<p>${servicios}</p>` : ''}
-                            ${dueno && dueno!== 'Por confirmar'? `<p class="dueno"><strong>Contacto:</strong> ${dueno}</p>` : ''}
-                            ${telefono? `<a href="tel:+1${telefono}" class="telefono">📞 ${c[6]}</a>` : ''}
+                            ${dueno && dueno!== nombre && dueno!== 'Por confirmar'? `<p class="dueno"><strong>Contacto:</strong> ${dueno}</p>` : ''}
+                            ${telefono? `<a href="tel:+1${telefono}" class="telefono">📞 ${telefonoRaw}</a>` : ''}
                             ${whatsapp? `<a href="https://wa.me/1${whatsapp}" class="whatsapp" target="_blank">💬 WhatsApp</a>` : ''}
                         </div>
                     `;
+                } else {
+                    saltados++;
                 }
             });
             
-            document.getElementById('contador').innerHTML = `Mostrando ${contador} negocios verificados`;
+            document.getElementById('contador').innerHTML = `Mostrando ${contador} negocios verificados. ${saltados} omitidos por falta de nombre o teléfono.`;
             document.getElementById('directorio').innerHTML = html || 'No hay negocios con información completa. ¡Registra el tuyo!';
         }
         
