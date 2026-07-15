@@ -29,7 +29,7 @@ header{background:#1b2a4a;color:white;text-align:center;padding:30px 15px}
 header h1{margin:0;font-size:2rem} header h1 span{color:#d4ac5a}
 .container{max-width:1000px;margin:20px auto;padding:0 15px}
 .filters{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
-.filters select,.filters input{padding:10px;border:1px solid #c7d2f0;border-radius:8px;font-size:1rem}
+.filters select,.filters input{padding:10px;border:1px solid #c7d2f0;border-radius:8px;font-size:1rem;flex:1;min-width:200px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:15px}
 .card{background:white;border:1px solid #e8dfc8;border-radius:12px;padding:16px}
 .card h3{margin:0 0 5px 0;font-size:1.1rem}
@@ -38,104 +38,106 @@ header h1{margin:0;font-size:2rem} header h1 span{color:#d4ac5a}
 .btn{display:inline-block;background:#22c55e;color:white;padding:8px 12px;border-radius:7px;text-decoration:none;font-weight:700;font-size:.9rem}
 .btn-call{background:#1b2a4a;margin-right:6px}
 .loading{text-align:center;padding:40px;color:#5a6a8a}
+.contador{text-align:center;margin:10px 0;color:#2e4480;font-weight:bold}
 </style>
 </head>
 <body>
 <header>
   <h1>La Montaña <span>Resuelve</span></h1>
-  <p>Directorio Fijo del Centro de Puerto Rico</p>
+  <p>Directorio Verificado del Centro de Puerto Rico</p>
 </header>
 <div class="container">
   <div class="filters">
     <input type="text" id="buscar" placeholder="Buscar servicio: plomero, comida...">
     <select id="pueblo"><option value="">Todos los pueblos</option><option>Barranquitas</option><option>Aibonito</option><option>Orocovis</option><option>Comerío</option><option>Corozal</option><option>Naranjito</option></select>
-    <select id="categoria"><option value="">Todas las categorías</option><option>Construcción y Mantenimiento</option><option>Mantenimiento de Casas</option><option>Limpieza</option><option>Áreas Verdes</option><option>Gastronomía</option><option>Salud</option><option>Mecánica</option><option>Profesionales</option><option>Especializados</option><option>Eventos</option><option>Comercio</option></select>
+    <select id="categoria"><option value="">Todas las categorías</option><option>Construcción</option><option>Plomería</option><option>Electricidad</option><option>Limpieza</option><option>Áreas Verdes</option><option>Gastronomía</option><option>Salud</option><option>Mecánica</option><option>Profesionales</option></select>
   </div>
-  <div id="resultados" class="grid"><p class="loading">Cargando negocios...</p></div>
+  <div id="contador" class="contador"></div>
+  <div id="resultados" class="grid"><p class="loading">Cargando... Si tu Sheet está vacío, verás "Aún no hay negocios"</p></div>
 </div>
 <script>
-const SHEET_API = 'https://script.google.com/macros/s/AKfycbzyaPp5R4uI3lWz4iB5kI4iWbQJ1uO5J8Y1dV5QeY2/exec';
-
-// Parser de CSV que respeta comillas y comas
-function parseCSV(text) {
-  const rows = [];
-  let row = [];
-  let cell = '';
-  let inQuotes = false;
-  for (let i = 0; i < text.length; i++) {
-    const char = text[i];
-    const next = text[i+1];
-    if (char === '"' && inQuotes && next === '"') { cell += '"'; i++; }
-    else if (char === '"') { inQuotes = !inQuotes; }
-    else if (char === ',' && !inQuotes) { row.push(cell); cell = ''; }
-    else if ((char === '\n' || char === '\r') && !inQuotes) {
-      if (cell || row.length) { row.push(cell); rows.push(row); row = []; cell = ''; }
-      if (char === '\r' && next === '\n') i++;
-    } else { cell += char; }
-  }
-  if (cell || row.length) { row.push(cell); rows.push(row); }
-  return rows;
-}
-
-function limpiarTelefono(tel) {
-  if (!tel) return '';
-  return tel.replace(/[^0-9]/g, ''); // Solo deja números
-}
-
-function crearWhatsAppLink(tel) {
-  const limpio = limpiarTelefono(tel);
-  if (!limpio) return '';
-  // Añade 1 si es número de PR/USA de 10 dígitos
-  const conCodigo = limpio.length === 10 ? '1' + limpio : limpio;
-  return `https://wa.me/${conCodigo}`;
-}
+const SHEET_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS65iGePl2YHPeeX81nDjvW6FeTYDtB9yDGfXy-P86oyqJ-k5De0UIlmvH8Sw9J30ZDNnf2KSTwTUYK/pub?gid=1194828649&single=true&output=csv';
 
 async function cargarData(){
-  try {
-    const res = await fetch(SHEET_API);
-    const data = await res.text();
-    const rows = parseCSV(data).slice(1).filter(r => r[0]); // Filtra filas vacías
-    window.negocios = rows.map(c => {
-      const tel = c[8] || '';
-      const wa = c[10] || crearWhatsAppLink(tel);
-      return { 
-        nombre: c[0]||'', 
-        dueno: c[1]||'', 
-        pueblo: c[2]||'', 
-        categoria: c[4]||'', 
-        servicios: c[6]||'', 
-        tel: limpiarTelefono(tel), 
-        wa: wa 
-      };
-    }).filter(n => n.nombre);
-    mostrar();
-  } catch(e) { 
-    document.getElementById('resultados').innerHTML = '<p>Error cargando datos. Verifica el Google Sheet.</p>';
-    console.error(e);
+  const proxies = [
+    'https://api.allorigins.win/raw?url=' + encodeURIComponent(SHEET_CSV),
+    'https://corsproxy.io/?' + encodeURIComponent(SHEET_CSV),
+    SHEET_CSV
+  ];
+  for(let url of proxies){
+    try{
+      const res = await fetch(url);
+      const text = await res.text();
+      if(text.includes('Nombre del Negocio')){
+        procesar(text);
+        return;
+      }
+    }catch(e){}
   }
+  document.getElementById('resultados').innerHTML = '<p>Aún no hay negocios verificados. Tu Sheet está limpio y listo para empezar mañana.</p>';
+  document.getElementById('contador').innerHTML = 'Sheet vacío - 0 negocios';
+}
+
+function procesar(data){
+  const rows = data.split('\n');
+  const headers = rows[0].split(',').map(h=>h.replace(/^"|"$/g,'').trim());
+  const idx = {
+    nombre: headers.indexOf('Nombre del Negocio'),
+    dueno: headers.indexOf('Nombre del Dueño/Contacto'),
+    pueblo: headers.indexOf('Pueblo'),
+    cat: headers.indexOf('Categoría Principal'),
+    serv: headers.indexOf('¿Qué servicios ofreces?'),
+    tel: headers.indexOf('Teléfono principal'),
+    wa: headers.indexOf('WhatsApp')
+  };
+  let negocios = [];
+  rows.slice(1).forEach(r=>{
+    if(!r.trim()) return;
+    const cols = r.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
+    const c = cols.map(v=>v.replace(/^"|"$/g,'').trim());
+    let nombre = c[idx.nombre] || '';
+    const dueno = c[idx.dueno] || '';
+    if(!nombre || nombre==='Por confirmar') nombre = dueno;
+    const pueblo = c[idx.pueblo] || '';
+    const categoria = c[idx.cat] || '';
+    const servicios = c[idx.serv] || '';
+    const telRaw = c[idx.tel] || '';
+    const waRaw = c[idx.wa] || '';
+    const tel = telRaw.replace(/\D/g,'');
+    const wa = waRaw.replace(/\D/g,'');
+    const tieneNombre = nombre && nombre.length>2 && !['Barranquitas','Corozal','Aibonito','Orocovis','Comerío','Naranjito','Todos'].includes(nombre);
+    const tieneTel = (tel && tel.length>=7) || (wa && wa.length>=7);
+    if(tieneNombre && tieneTel){
+      negocios.push({nombre, dueno, pueblo, categoria, servicios, telRaw, waRaw, tel, wa});
+    }
+  });
+  window.negocios = negocios;
+  document.getElementById('contador').innerHTML = negocios.length ? `Mostrando ${negocios.length} negocios verificados` : 'Aún no hay negocios - Sheet limpio listo para empezar';
+  mostrar();
 }
 
 function mostrar(){
   const b = document.getElementById('buscar').value.toLowerCase();
   const p = document.getElementById('pueblo').value;
   const c = document.getElementById('categoria').value;
-  const html = window.negocios.filter(n => 
-    (!b || n.nombre.toLowerCase().includes(b) || n.servicios.toLowerCase().includes(b)) && 
+  const filtrados = window.negocios.filter(n => 
+    (!b || n.nombre.toLowerCase().includes(b) || n.servicios.toLowerCase().includes(b) || n.categoria.toLowerCase().includes(b)) && 
     (!p || n.pueblo.includes(p)) && 
     (!c || n.categoria.includes(c))
-  ).map(n => `
+  );
+  const html = filtrados.map(n => `
     <div class="card">
-      <span class="muni">${n.pueblo || 'Por confirmar'}</span>
+      <span class="muni">📍 ${n.pueblo || 'Centro PR'}</span>
       <h3>${n.nombre}</h3>
-      ${n.dueno? `<p style="font-size:.8rem;color:#5a6a8a;margin:0 0 8px 0">${n.dueno}</p>` : ''}
+      ${n.dueno && n.dueno!==n.nombre? `<p style="font-size:.8rem;color:#5a6a8a;margin:0 0 8px 0">Contacto: ${n.dueno}</p>` : ''}
+      ${n.categoria? `<p style="font-size:.8rem;font-weight:bold;margin:0">${n.categoria}</p>` : ''}
       <p class="desc">${n.servicios}</p>
-      ${n.tel? `<a class="btn btn-call" href="tel:${n.tel}">📞 Llamar</a>` : ''}
-      ${n.wa && n.wa.includes('wa.me')? `<a class="btn" href="${n.wa}" target="_blank">💬 WhatsApp</a>` : ''}
+      ${n.tel? `<a class="btn btn-call" href="tel:+1${n.tel}">📞 Llamar</a>` : ''}
+      ${n.wa? `<a class="btn" href="https://wa.me/1${n.wa}" target="_blank">💬 WhatsApp</a>` : ''}
     </div>
   `).join('');
-  document.getElementById('resultados').innerHTML = html || '<p>No hay resultados.</p>';
+  document.getElementById('resultados').innerHTML = html || '<p>No hay resultados con esos filtros.</p>';
 }
-
 document.getElementById('buscar').oninput = mostrar;
 document.getElementById('pueblo').onchange = mostrar;
 document.getElementById('categoria').onchange = mostrar;
