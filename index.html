@@ -59,12 +59,9 @@ header h1{margin:0;font-size:2rem} header h1 span{color:#d4ac5a}
 </div>
 <script>
 const SHEET_CSVS = [
-  'https://docs.google.com/spreadsheets/d/e/2PACX-1vS65iGePl2YHPeeX81nDjvW6FeTYDtB9yDGfXy-P86oyqJ-k5De0UIlmvH8Sw9J30ZDNnf2KSTwTUYK/pub?gid=1194828649&single=true&output=csv',
-  'https://docs.google.com/spreadsheets/d/e/2PACX-1vS65iGePl2YHPeeX81nDjvW6FeTYDtB9yDGfXy-P86oyqJ-k5De0UIlmvH8Sw9J30ZDNnf2KSTwTUYK/pub?gid=794828648&single=true&output=csv',
-  'https://docs.google.com/spreadsheets/d/e/2PACX-1vS65iGePl2YHPeeX81nDjvW6FeTYDtB9yDGfXy-P86oyqJ-k5De0UIlmvH8Sw9J30ZDNnf2KSTwTUYK/pub?gid=0&single=true&output=csv',
-  'https://docs.google.com/spreadsheets/d/e/2PACX-1vS65iGePl2YHPeeX81nDjvW6FeTYDtB9yDGfXy-P86oyqJ-k5De0UIlmvH8Sw9J30ZDNnf2KSTwTUYK/pub?gid=7948286484&single=true&output=csv'
+  'https://docs.google.com/spreadsheets/d/1HfQxwQUfR9k_4ngszBLvEAuKzJS4PuIaFnhVCQQhwSQ/export?format=csv',
+  'https://docs.google.com/spreadsheets/d/1HfQxwQUfR9k_4ngszBLvEAuKzJS4PuIaFnhVCQQhwSQ/export?format=csv&gid=0'
 ];
-
 async function cargarData(){
   for(let base of SHEET_CSVS){
     const proxies = [
