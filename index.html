@@ -76,25 +76,34 @@ header h1{margin:0;font-size:2rem} header h1 span{color:#d4ac5a}
   <div id="resultados" class="grid"><p class="loading">Cargando negocios verificados...</p></div>
 </div>
 <script>
-const SHEET_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS65iGePl2YHPeeX81nDjvW6FeTYDtB9yDGfXy-P86oyqJ-k5De0UIlmvH8Sw9J30ZDNnf2KSTwTUYK/pub?gid=1194828649&single=true&output=csv';
+const SHEET_CSVS = [
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vS65iGePl2YHPeeX81nDjvW6FeTYDtB9yDGfXy-P86oyqJ-k5De0UIlmvH8Sw9J30ZDNnf2KSTwTUYK/pub?gid=1194828649&single=true&output=csv',
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vS65iGePl2YHPeeX81nDjvW6FeTYDtB9yDGfXy-P86oyqJ-k5De0UIlmvH8Sw9J30ZDNnf2KSTwTUYK/pub?gid=794828648&single=true&output=csv',
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vS65iGePl2YHPeeX81nDjvW6FeTYDtB9yDGfXy-P86oyqJ-k5De0UIlmvH8Sw9J30ZDNnf2KSTwTUYK/pub?gid=0&single=true&output=csv',
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vS65iGePl2YHPeeX81nDjvW6FeTYDtB9yDGfXy-P86oyqJ-k5De0UIlmvH8Sw9J30ZDNnf2KSTwTUYK/pub?gid=7948286484&single=true&output=csv'
+];
 
 async function cargarData(){
-  const proxies = [
-    'https://api.allorigins.win/raw?url=' + encodeURIComponent(SHEET_CSV),
-    'https://corsproxy.io/?' + encodeURIComponent(SHEET_CSV),
-    SHEET_CSV
-  ];
-  for(let url of proxies){
-    try{
-      const res = await fetch(url);
-      const text = await res.text();
-      if(text.includes('Nombre del Negocio') || text.includes('Timestamp')){
-        procesar(text);
-        return;
-      }
-    }catch(e){}
+  for(let base of SHEET_CSVS){
+    const proxies = [
+      'https://api.allorigins.win/raw?url=' + encodeURIComponent(base),
+      'https://corsproxy.io/?' + encodeURIComponent(base),
+      base
+    ];
+    for(let url of proxies){
+      try{
+        const res = await fetch(url);
+        const text = await res.text();
+        if((text.includes('Nombre del Negocio') || text.includes('Timestamp')) && text.split(/\r?\n/).length>2){
+          console.log('Usando CSV:', base);
+          procesar(text);
+          return;
+        }
+      }catch(e){}
+    }
   }
-  document.getElementById('resultados').innerHTML = '<p>Aún no hay negocios verificados. Tu Sheet está limpio y listo.</p>';
+  document.getElementById('resultados').innerHTML = '<p>Aún no hay negocios verificados. Revisa que Form Responses 2 esté publicado.</p>';
+  document.getElementById('contador').innerHTML = 'Sin datos - Verifica publicación';
 }
 
 function parseCSVLine(line){
@@ -208,4 +217,3 @@ cargarData();
 </script>
 </body>
 </html>
-
