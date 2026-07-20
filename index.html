@@ -31,14 +31,18 @@ header h1{margin:0;font-size:2rem} header h1 span{color:#d4ac5a}
 .filters{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
 .filters select,.filters input{padding:10px;border:1px solid #c7d2f0;border-radius:8px;font-size:1rem;flex:1;min-width:200px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:15px}
-.card{background:white;border:1px solid #e8dfc8;border-radius:12px;padding:16px}
+.card{background:white;border:1px solid #e8dfc8;border-radius:12px;padding:16px;box-shadow:0 2px 6px rgba(0,0,0,0.04)}
 .card h3{margin:0 0 5px 0;font-size:1.1rem}
 .muni{background:#eef2ff;color:#2e4480;font-size:.75rem;padding:3px 8px;border-radius:100px;display:inline-block;margin-bottom:8px}
 .desc{font-size:.9rem;color:#5a6a8a;margin:8px 0}
-.btn{display:inline-block;background:#22c55e;color:white;padding:8px 12px;border-radius:7px;text-decoration:none;font-weight:700;font-size:.9rem}
-.btn-call{background:#1b2a4a;margin-right:6px}
-.loading{text-align:center;padding:40px;color:#5a6a8a}
+.btn{display:inline-block;color:white;padding:8px 12px;border-radius:7px;text-decoration:none;font-weight:700;font-size:.85rem;margin:3px 4px 3px 0}
+.btn-call{background:#1b2a4a}
+.btn-wa{background:#22c55e}
+.btn-fb{background:#1877F2}
+.btn-ig{background:#E1306C}
 .contador{text-align:center;margin:10px 0;color:#2e4480;font-weight:bold}
+.loading{text-align:center;padding:40px;color:#5a6a8a}
+.cat{font-size:.8rem;font-weight:bold;color:#1b2a4a;margin:0 0 4px 0}
 </style>
 </head>
 <body>
@@ -48,12 +52,28 @@ header h1{margin:0;font-size:2rem} header h1 span{color:#d4ac5a}
 </header>
 <div class="container">
   <div class="filters">
-    <input type="text" id="buscar" placeholder="Buscar servicio: plomero, comida...">
+    <input type="text" id="buscar" placeholder="Buscar: plomero, A/C, grooming...">
     <select id="pueblo"><option value="">Todos los pueblos</option><option>Barranquitas</option><option>Aibonito</option><option>Orocovis</option><option>Comerío</option><option>Corozal</option><option>Naranjito</option></select>
-    <select id="categoria"><option value="">Todas las categorías</option><option>Construcción</option><option>Plomería</option><option>Electricidad</option><option>Limpieza</option><option>Áreas Verdes</option><option>Gastronomía</option><option>Salud</option><option>Mecánica</option><option>Profesionales</option></select>
+    <select id="categoria">
+      <option value="">Todas las categorías</option>
+      <option>Construcción y Mantenimiento</option>
+      <option>Plomería</option>
+      <option>Electricidad</option>
+      <option>Refrigeración y A/C</option>
+      <option>Limpieza</option>
+      <option>Áreas Verdes</option>
+      <option>Mecánica</option>
+      <option>Mascotas</option>
+      <option>Belleza y Cuidado</option>
+      <option>Salud</option>
+      <option>Gastronomía</option>
+      <option>Profesionales</option>
+      <option>Eventos</option>
+      <option>Comercio</option>
+    </select>
   </div>
   <div id="contador" class="contador"></div>
-  <div id="resultados" class="grid"><p class="loading">Cargando... Si tu Sheet está vacío, verás "Aún no hay negocios"</p></div>
+  <div id="resultados" class="grid"><p class="loading">Cargando negocios verificados...</p></div>
 </div>
 <script>
 const SHEET_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS65iGePl2YHPeeX81nDjvW6FeTYDtB9yDGfXy-P86oyqJ-k5De0UIlmvH8Sw9J30ZDNnf2KSTwTUYK/pub?gid=1194828649&single=true&output=csv';
@@ -68,51 +88,82 @@ async function cargarData(){
     try{
       const res = await fetch(url);
       const text = await res.text();
-      if(text.includes('Nombre del Negocio')){
+      if(text.includes('Nombre del Negocio') || text.includes('Timestamp')){
         procesar(text);
         return;
       }
     }catch(e){}
   }
-  document.getElementById('resultados').innerHTML = '<p>Aún no hay negocios verificados. Tu Sheet está limpio y listo para empezar mañana.</p>';
-  document.getElementById('contador').innerHTML = 'Sheet vacío - 0 negocios';
+  document.getElementById('resultados').innerHTML = '<p>Aún no hay negocios verificados. Tu Sheet está limpio y listo.</p>';
+}
+
+function parseCSVLine(line){
+  const out=[]; let cur=''; let inQ=false;
+  for(let i=0;i<line.length;i++){
+    const c=line[i];
+    if(c=='"' && line[i+1]=='"'){cur+='"'; i++; continue;}
+    if(c=='"'){inQ=!inQ; continue;}
+    if(c==',' && !inQ){out.push(cur.trim()); cur=''; continue;}
+    cur+=c;
+  }
+  out.push(cur.trim());
+  return out;
 }
 
 function procesar(data){
-  const rows = data.split('\n');
-  const headers = rows[0].split(',').map(h=>h.replace(/^"|"$/g,'').trim());
+  const lines = data.split(/\r?\n/).filter(l=>l.trim());
+  if(lines.length<2){document.getElementById('contador').innerHTML='Sheet vacío - 0 negocios'; return;}
+  const headers = parseCSVLine(lines[0]).map(h=>h.replace(/^"|"$/g,'').trim());
   const idx = {
-    nombre: headers.indexOf('Nombre del Negocio'),
-    dueno: headers.indexOf('Nombre del Dueño/Contacto'),
-    pueblo: headers.indexOf('Pueblo'),
-    cat: headers.indexOf('Categoría Principal'),
-    serv: headers.indexOf('¿Qué servicios ofreces?'),
-    tel: headers.indexOf('Teléfono principal'),
-    wa: headers.indexOf('WhatsApp')
+    nombre: headers.findIndex(h=>h.toLowerCase().includes('nombre del negocio')),
+    dueno: headers.findIndex(h=>h.toLowerCase().includes('dueño') || h.toLowerCase().includes('contacto')),
+    pueblo: headers.findIndex(h=>h.toLowerCase()==='pueblo'),
+    cat: headers.findIndex(h=>h.toLowerCase().includes('categoría')),
+    serv: headers.findIndex(h=>h.toLowerCase().includes('servicios')),
+    tel: headers.findIndex(h=>h.toLowerCase().includes('teléfono')),
+    wa: headers.findIndex(h=>h.toLowerCase().includes('whatsapp')),
+    fb: headers.findIndex(h=>h.toLowerCase().includes('facebook') || h.toLowerCase().includes('instagram'))
   };
-  let negocios = [];
-  rows.slice(1).forEach(r=>{
-    if(!r.trim()) return;
-    const cols = r.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
-    const c = cols.map(v=>v.replace(/^"|"$/g,'').trim());
-    let nombre = c[idx.nombre] || '';
-    const dueno = c[idx.dueno] || '';
+  let negocios=[];
+  for(let i=1;i<lines.length;i++){
+    const c = parseCSVLine(lines[i]);
+    if(!c[idx.nombre] && !c[idx.dueno]) continue;
+    let nombre = (c[idx.nombre]||'').trim();
+    const dueno = (c[idx.dueno]||'').trim();
     if(!nombre || nombre==='Por confirmar') nombre = dueno;
-    const pueblo = c[idx.pueblo] || '';
-    const categoria = c[idx.cat] || '';
-    const servicios = c[idx.serv] || '';
-    const telRaw = c[idx.tel] || '';
-    const waRaw = c[idx.wa] || '';
+    const pueblo = (c[idx.pueblo]||'').trim();
+    const categoria = (c[idx.cat]||'').trim();
+    const servicios = (c[idx.serv]||'').trim();
+    const telRaw = (c[idx.tel]||'').trim();
+    const waRaw = (c[idx.wa]||'').trim();
+    const fbRaw = (c[idx.fb]||'').trim();
+    
     const tel = telRaw.replace(/\D/g,'');
     const wa = waRaw.replace(/\D/g,'');
-    const tieneNombre = nombre && nombre.length>2 && !['Barranquitas','Corozal','Aibonito','Orocovis','Comerío','Naranjito','Todos'].includes(nombre);
-    const tieneTel = (tel && tel.length>=7) || (wa && wa.length>=7);
-    if(tieneNombre && tieneTel){
-      negocios.push({nombre, dueno, pueblo, categoria, servicios, telRaw, waRaw, tel, wa});
+    
+    // Detectar Facebook / Instagram / Messenger
+    let fbLink = '', igLink = '', isMessenger = false;
+    if(fbRaw){
+      const lower = fbRaw.toLowerCase();
+      isMessenger = lower.includes('messenger');
+      const fbMatch = fbRaw.match(/https?:\/\/[^\s,]+facebook[^\s,]+/i);
+      const igMatch = fbRaw.match(/https?:\/\/[^\s,]+instagram[^\s,]+/i);
+      if(fbMatch) fbLink = fbMatch[0];
+      else if(lower.includes('facebook.com')) fbLink = fbRaw.split(/\s+/)[0];
+      if(igMatch) igLink = igMatch[0];
+      else if(lower.includes('instagram.com') && !fbLink.includes('instagram')) igLink = fbRaw.split(/\s+/).find(s=>s.includes('instagram')) || '';
+      // Si solo dice "Facebook, Messenger" sin link, igual marcamos que tiene FB
+      if(!fbLink && (lower.includes('facebook') || isMessenger)) fbLink = 'messenger';
     }
-  });
+    
+    const tieneNombre = nombre && nombre.length>2;
+    const tieneContacto = (tel.length>=7) || (wa.length>=7) || fbLink;
+    if(tieneNombre && tieneContacto){
+      negocios.push({nombre, dueno, pueblo, categoria, servicios, telRaw, waRaw, fbRaw, tel, wa, fbLink, igLink, isMessenger});
+    }
+  }
   window.negocios = negocios;
-  document.getElementById('contador').innerHTML = negocios.length ? `Mostrando ${negocios.length} negocios verificados` : 'Aún no hay negocios - Sheet limpio listo para empezar';
+  document.getElementById('contador').innerHTML = negocios.length ? `Mostrando ${negocios.length} negocios verificados` : 'Aún no hay negocios - Sheet limpio listo';
   mostrar();
 }
 
@@ -121,21 +172,33 @@ function mostrar(){
   const p = document.getElementById('pueblo').value;
   const c = document.getElementById('categoria').value;
   const filtrados = window.negocios.filter(n => 
-    (!b || n.nombre.toLowerCase().includes(b) || n.servicios.toLowerCase().includes(b) || n.categoria.toLowerCase().includes(b)) && 
+    (!b || n.nombre.toLowerCase().includes(b) || n.servicios.toLowerCase().includes(b) || n.categoria.toLowerCase().includes(b) || n.pueblo.toLowerCase().includes(b)) && 
     (!p || n.pueblo.includes(p)) && 
-    (!c || n.categoria.includes(c))
+    (!c || n.categoria.toLowerCase().includes(c.toLowerCase()))
   );
-  const html = filtrados.map(n => `
+  const html = filtrados.map(n => {
+    let btns = '';
+    if(n.tel) btns += `<a class="btn btn-call" href="tel:+1${n.tel}">📞 Llamar</a>`;
+    if(n.wa) btns += `<a class="btn btn-wa" href="https://wa.me/1${n.wa}" target="_blank">💬 WhatsApp</a>`;
+    if(n.fbLink){
+      if(n.fbLink==='messenger'){
+        btns += `<span class="btn btn-fb" style="opacity:0.9">📩 Messenger (ver Facebook)</span>`;
+      } else {
+        const label = n.isMessenger ? '📩 Messenger' : '📘 Facebook';
+        btns += `<a class="btn btn-fb" href="${n.fbLink}" target="_blank">${label}</a>`;
+      }
+    }
+    if(n.igLink) btns += `<a class="btn btn-ig" href="${n.igLink}" target="_blank">📸 Instagram</a>`;
+    return `
     <div class="card">
       <span class="muni">📍 ${n.pueblo || 'Centro PR'}</span>
       <h3>${n.nombre}</h3>
-      ${n.dueno && n.dueno!==n.nombre? `<p style="font-size:.8rem;color:#5a6a8a;margin:0 0 8px 0">Contacto: ${n.dueno}</p>` : ''}
-      ${n.categoria? `<p style="font-size:.8rem;font-weight:bold;margin:0">${n.categoria}</p>` : ''}
-      <p class="desc">${n.servicios}</p>
-      ${n.tel? `<a class="btn btn-call" href="tel:+1${n.tel}">📞 Llamar</a>` : ''}
-      ${n.wa? `<a class="btn" href="https://wa.me/1${n.wa}" target="_blank">💬 WhatsApp</a>` : ''}
-    </div>
-  `).join('');
+      ${n.dueno && n.dueno!==n.nombre? `<p style="font-size:.8rem;color:#5a6a8a;margin:0 0 6px 0">${n.dueno}</p>` : ''}
+      ${n.categoria? `<p class="cat">${n.categoria}</p>` : ''}
+      <p class="desc">${n.servicios || 'Servicio local verificado'}</p>
+      <div style="margin-top:8px">${btns}</div>
+    </div>`;
+  }).join('');
   document.getElementById('resultados').innerHTML = html || '<p>No hay resultados con esos filtros.</p>';
 }
 document.getElementById('buscar').oninput = mostrar;
@@ -145,3 +208,4 @@ cargarData();
 </script>
 </body>
 </html>
+
