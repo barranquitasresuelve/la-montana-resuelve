@@ -58,22 +58,18 @@ header h1{margin:0;font-size:2rem} header h1 span{color:#d4ac5a}
   <div id="resultados" class="grid"><p class="loading">Cargando negocios verificados...</p></div>
 </div>
 <script>
-const SHEET_CSVS = [
-  'https://docs.google.com/spreadsheets/d/1HfQxwQUfR9k_4ngszBLvEAuKzJS4PuIaFnhVCQQhwSQ/export?format=csv',
-  'https://docs.google.com/spreadsheets/d/1HfQxwQUfR9k_4ngszBLvEAuKzJS4PuIaFnhVCQQhwSQ/export?format=csv&gid=0'
+ const SHEET_CSVS = [
+  'https://docs.google.com/spreadsheets/d/1HfQxwQUfR9k_4ngszBLvEAuKzJS4PuIaFnhVCQQhwSQ/gviz/tq?tqx=out:csv&sheet=Form%20Responses%202',
+  'https://docs.google.com/spreadsheets/d/1HfQxwQUfR9k_4ngszBLvEAuKzJS4PuIaFnhVCQQhwSQ/gviz/tq?tqx=out:csv'
 ];
 async function cargarData(){
   for(let base of SHEET_CSVS){
-    const proxies = [
-      'https://api.allorigins.win/raw?url=' + encodeURIComponent(base),
-      'https://corsproxy.io/?' + encodeURIComponent(base),
-      base
-    ];
+    const proxies = [ base ];
     for(let url of proxies){
       try{
         const res = await fetch(url);
         const text = await res.text();
-        if((text.includes('Nombre del Negocio') || text.includes('Timestamp')) && text.split(/\r?\n/).length>2){
+        if((text.includes('Nombre del Negocio') || text.includes('Timestamp'))){
           console.log('Usando CSV:', base);
           procesar(text);
           return;
@@ -81,10 +77,9 @@ async function cargarData(){
       }catch(e){}
     }
   }
-  document.getElementById('resultados').innerHTML = '<p>Aún no hay negocios verificados. Revisa que Form Responses 2 esté publicado.</p>';
-  document.getElementById('contador').innerHTML = 'Sin datos - Verifica publicación';
+  document.getElementById('resultados').innerHTML = '<p class="loading">Aún no hay negocios - Sheet limpio listo</p>';
+  document.getElementById('contador').innerHTML = '0 negocios';
 }
-
 function parseCSVLine(line){
   const out=[]; let cur=''; let inQ=false;
   for(let i=0;i<line.length;i++){
