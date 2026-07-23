@@ -26,16 +26,89 @@
   </div>
   <div id="stats" class="text-sm text-gray-600 mb-3"></div>
   <div id="grid" class="grid gap-3"></div>
-  <div id="empty" class="hidden bg-white rounded-2xl p-8 text-center"><p class="font-semibold">Aún estamos verificando negocios en esta área.</p><p class="text-sm text-gray-600 mt-2">¿Conoces a alguien de confianza?</p></div>
 </div>
 <script>
 const SHEET_ID="1HfQxwQUfR9k_4ngszBLvEAuKzJS4PuIaFnhVCQQhwSQ";
 const SHEET_URL=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=v2`;
-const demo=[{nombre:"Artisan's Cabinets",dueno:"Heriberto Garay",pueblo:"Orocovis",categoria:"Construcción",descripcion:"Ebanisteria, madera y PVC",telefono:"787-317-8598"},{nombre:"JR Handyman Services",dueno:"Juan Vasquez Rojas",pueblo:"Barranquitas",categoria:"A/C y Refrigeración",descripcion:"Mantenimiento A/C, Sellador Techo",telefono:"787-516-3516"},{nombre:"Bubbles of Joy Dog Grooming",dueno:"Sullivan",pueblo:"Barranquitas",categoria:"Mascotas",descripcion:"Dog Grooming",telefono:"939-425-6322"}];
+const demo=[
+{nombre:"Artisan's Cabinets",dueno:"Heriberto Garay",pueblo:"Orocovis",categoria:"Construcción",descripcion:"Ebanisteria, madera y PVC",telefono:"787-317-8598"},
+{nombre:"JR Handyman Services",dueno:"Juan Vasquez Rojas",pueblo:"Barranquitas",categoria:"A/C y Refrigeración",descripcion:"Mantenimiento A/C",telefono:"787-516-3516"},
+{nombre:"Bubbles of Joy Dog Grooming",dueno:"Sullivan",pueblo:"Barranquitas",categoria:"Mascotas",descripcion:"Dog Grooming",telefono:"939-425-6322"}
+];
 let data=[];
-function render(){const q=document.getElementById('search').value.toLowerCase();const pf=document.getElementById('pueblo').value;const cf=document.getElementById('cat').value;let f=data.filter(d=>{const txt=(d.nombre+" "+d.categoria+" "+d.pueblo+" "+d.descripcion).toLowerCase();return(!q||txt.includes(q))&&(!pf||d.pueblo===pf)&&(!cf||d.categoria===cf);});document.getElementById('stats').textContent=`${f.length} negocios verificados · 7 pueblos`;const grid=document.getElementById('grid');grid.innerHTML="";if(f.length===0){document.getElementById('empty').classList.remove('hidden');return;}else document.getElementById('empty').classList.add('hidden');f.forEach(b=>{const card=document.createElement('div');card.className="bg-white rounded-2xl shadow-sm p-4";card.innerHTML=`<div class="flex gap-2 mb-2"><span class="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full">${b.pueblo}</span><span class="text-xs bg-amber-50 text-amber-700 px-2 py-1 rounded-full">${b.categoria}</span><span class="ml-auto text-xs bg-green-50 text-green-700 px-2 py-1 rounded-full">✓ Verificado</span></div><h3 class="font-bold">${b.nombre}</h3><p class="text-xs text-gray-500">${b.dueno||''}</p><p class="text-sm mt-1">${b.descripcion||''}</p><div class="flex gap-2 mt-3"><a href="tel:${b.telefono}" class="flex-1 text-center bg-[#1a2a4a] text-white text-sm py-2 rounded-xl">Llamar</a><a href="https://wa.me/1${b.telefono.replace(/[^0-9]/g,'')}" class="flex-1 text-center bg-green-600 text-white text-sm py-2 rounded-xl">WhatsApp</a></div>`;grid.appendChild(card);});}
-async function load(){try{const r=await fetch(SHEET_URL);const t=await r.text();const rows=t.split("\n").map(r=>r.split(",").map(c=>c.replace(/"/g,'').trim()));const headers=rows[0].map(h=>h.toLowerCase());const idx={nombre:headers.findIndex(h=>h.includes('nombre')),pueblo:headers.findIndex(h=>h.includes('pueblo')),categoria:headers.findIndex(h=>h.includes('categ')),descripcion:headers.findIndex(h=>h.includes('desc')),telefono:headers.findIndex(h=>h.includes('tel')),dueno:headers.findIndex(h=>h.includes('due'))};data=rows.slice(1).filter(r=>r[0]).map(r=>({nombre:r[idx.nombre]||r[0],pueblo:r[idx.pueblo]||'',categoria:r[idx.categoria]||'',descripcion:r[idx.descripcion]||'',telefono:r[idx.telefono]||'',dueno:r[idx.dueno]||''})).filter(d=>d.nombre);document.getElementById('status').textContent='Conectado en vivo';}catch(e){data=demo;document.getElementById('status').textContent='Modo Demo';}render();}
-document.getElementById('search').addEventListener('input',render);document.getElementById('pueblo').addEventListener('change',render);document.getElementById('cat').addEventListener('change',render);load();
+function render(){
+  const q=document.getElementById('search').value.toLowerCase();
+  const pf=document.getElementById('pueblo').value;
+  const cf=document.getElementById('cat').value;
+  let f=data.filter(d=>{
+    const txt=(d.nombre+" "+d.categoria+" "+d.pueblo+" "+d.descripcion).toLowerCase();
+    return (!q||txt.includes(q)) && (!pf||d.pueblo===pf) && (!cf||d.categoria===cf);
+  });
+  document.getElementById('stats').textContent=`${f.length} negocios verificados · 7 pueblos`;
+  const grid=document.getElementById('grid'); grid.innerHTML="";
+  f.forEach(b=>{
+    const card=document.createElement('div');
+    card.className="bg-white rounded-2xl shadow-sm p-4";
+    card.innerHTML=`
+      <div class="flex gap-2 mb-2">
+        <span class="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full">${b.pueblo||''}</span>
+        <span class="text-xs bg-amber-50 text-amber-700 px-2 py-1 rounded-full">${b.categoria||''}</span>
+        <span class="ml-auto text-xs bg-green-50 text-green-700 px-2 py-1 rounded-full">✓ Verificado</span>
+      </div>
+      <h3 class="font-bold">${b.nombre}</h3>
+      <p class="text-xs text-gray-500">${b.dueno||''}</p>
+      <p class="text-sm mt-1 text-gray-700">${b.descripcion||''}</p>
+      <div class="flex gap-2 mt-3">
+        <a href="tel:${b.telefono}" class="flex-1 text-center bg-[#1a2a4a] text-white text-sm py-2 rounded-xl">Llamar</a>
+        <a href="https://wa.me/1${(b.telefono||'').replace(/[^0-9]/g,'')}" target="_blank" class="flex-1 text-center bg-green-600 text-white text-sm py-2 rounded-xl">WhatsApp</a>
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+async function load(){
+  try{
+    const r=await fetch(SHEET_URL);
+    const t=await r.text();
+    const rows=[]; let cur=[]; let val=""; let inQ=false;
+    for(let i=0;i<t.length;i++){
+      const c=t[i];
+      if(c=='"'){ if(inQ && t[i+1]=='"'){val+='"';i++;} else inQ=!inQ; continue; }
+      if(!inQ && c==','){cur.push(val.trim()); val=""; continue;}
+      if(!inQ && (c=='\n' || c=='\r')){ if(val||cur.length){cur.push(val.trim()); rows.push(cur); cur=[]; val="";} if(c=='\r' && t[i+1]=='\n') i++; continue;}
+      val+=c;
+    }
+    if(val||cur.length){cur.push(val.trim()); rows.push(cur);}
+    const headers=rows[0].map(h=>h.toLowerCase());
+    const find=(keys)=>headers.findIndex(h=>keys.some(k=>h.includes(k)));
+    const idx={
+      nombre: find(['nombre del nego','nombre']),
+      dueno: find(['dueno','contacto']),
+      pueblo: find(['pueblo','municipio']),
+      categoria: find(['categoria']),
+      descripcion: find(['descripcion','servicio']),
+      telefono: find(['telefono','tel','cel'])
+    };
+    let list=rows.slice(1).map(r=>{
+      const get=(i)=> (i>=0 && r[i]?r[i].trim():'');
+      return {nombre:get(idx.nombre)||r[0]||'', dueno:get(idx.dueno)||'', pueblo:get(idx.pueblo)||'', categoria:get(idx.categoria)||'', descripcion:get(idx.descripcion)||'', telefono:get(idx.telefono)||''};
+    });
+    // FILTRO: elimina filas que son encabezados
+    list=list.filter(d=>{
+      if(!d.nombre) return false;
+      const l=d.nombre.toLowerCase();
+      if(l.includes('nombre del negocio')) return false;
+      if(l.includes('nombre del due')) return false;
+      return true;
+    });
+    if(list.length>0){ data=list; document.getElementById('status').textContent='Conectado en vivo'; }
+    else throw 'vacio';
+  }catch(e){ data=demo; document.getElementById('status').textContent='Modo Demo'; }
+  render();
+}
+document.getElementById('search').addEventListener('input',render);
+document.getElementById('pueblo').addEventListener('change',render);
+document.getElementById('cat').addEventListener('change',render);
+load();
 </script>
 </body>
 </html>
