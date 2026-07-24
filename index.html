@@ -29,8 +29,14 @@
 </div>
 <script>
 const SHEET_ID="1HfQxwQUfR9k_4ngszBLvEAuKzJS4PuIaFnhVCQQhwSQ";
-const SHEET_URL=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=v2`;
+const SHEET_URL=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Form%20Responses%202`;
 const demo=[
+{nombre:"Artisan's Cabinets",dueno:"Heriberto Garay",pueblo:"Orocovis",categoria:"Construcción",descripcion:"Ebanisteria, madera y PVC",telefono:"787-317-8598", foto:"", facebook:""},
+{nombre:"JR Handyman Services",dueno:"Juan Vasquez Rojas",pueblo:"Barranquitas",categoria:"A/C y Refrigeración",descripcion:"Mantenimiento A/C",telefono:"787-516-3516", foto:"", facebook:""},
+{nombre:"Bubbles of Joy Dog Grooming",dueno:"Sullivan",pueblo:"Barranquitas",categoria:"Mascotas",descripcion:"Dog Grooming",telefono:"939-425-6322", foto:"", facebook:""}
+];
+const _demo_old=[
+
 {nombre:"Artisan's Cabinets",dueno:"Heriberto Garay",pueblo:"Orocovis",categoria:"Construcción",descripcion:"Ebanisteria, madera y PVC",telefono:"787-317-8598"},
 {nombre:"JR Handyman Services",dueno:"Juan Vasquez Rojas",pueblo:"Barranquitas",categoria:"A/C y Refrigeración",descripcion:"Mantenimiento A/C",telefono:"787-516-3516"},
 {nombre:"Bubbles of Joy Dog Grooming",dueno:"Sullivan",pueblo:"Barranquitas",categoria:"Mascotas",descripcion:"Dog Grooming",telefono:"939-425-6322"}
@@ -86,11 +92,13 @@ async function load(){
       pueblo: find(['pueblo','municipio']),
       categoria: find(['categoria']),
       descripcion: find(['descripcion','servicio']),
-      telefono: find(['telefono','tel','cel'])
+      telefono: find(['telefono','tel','cel']),
+      foto: find(['foto','imagen','image','photo']),
+      facebook: find(['facebook','fb','link'])
     };
     let list=rows.slice(1).map(r=>{
       const get=(i)=> (i>=0 && r[i]?r[i].trim():'');
-      return {nombre:get(idx.nombre)||r[0]||'', dueno:get(idx.dueno)||'', pueblo:get(idx.pueblo)||'', categoria:get(idx.categoria)||'', descripcion:get(idx.descripcion)||'', telefono:get(idx.telefono)||''};
+      return {nombre:get(idx.nombre)||r[0]||'', dueno:get(idx.dueno)||'', pueblo:get(idx.pueblo)||'', categoria:get(idx.categoria)||'', descripcion:get(idx.descripcion)||'', telefono:get(idx.telefono)||'', foto:get(idx.foto)||'', facebook:get(idx.facebook)||''};
     });
     // FILTRO: elimina filas que son encabezados
     list=list.filter(d=>{
