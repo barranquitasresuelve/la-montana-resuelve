@@ -29,7 +29,15 @@ const SHEET_ID="1HfQxwQUfR9k_4ngszBLvEAuKzJS4PuIaFnhVCQQhwSQ";
 const SHEET_URL=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Form%20Responses%202`;
 let data=[];
 function normalize(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+function cleanPhone(p){
+  let d=(p||'').replace(/\D/g,'');
+  if(d.length===10) d='1'+d;
+  if(d.length===11 && d.startsWith('1')) return d;
+  if(d.length>11) return d.slice(-11);
+  return d;
+}
 function containsRoot(txt, q){
+  if(!q) return true;
   if(txt.includes(q)) return true;
   if(q.includes('ebanist') && txt.includes('ebanist')) return true;
   if(q.includes('albanil') && txt.includes('albanil')) return true;
@@ -55,7 +63,7 @@ if(cf){
   catMatch = containsRoot(catNorm, cfNorm) || containsRoot(txtNorm, cfNorm);
   if(!catMatch){
     if(cfNorm.includes('ebanist') && txtNorm.includes('ebanist')) catMatch=true;
-    if(cfNorm.includes('albanil') && (txtNorm.includes('albanil')||txtNorm.includes('bloque')||txtNorm.includes('cemento'))) catMatch=true;
+    if(cfNorm.includes('albanil') && (txtNorm.includes('albanil')||txtNorm.includes('bloque'))) catMatch=true;
     if(cfNorm.includes('solar') && txtNorm.includes('solar')) catMatch=true;
     if(cfNorm.includes('jardin') && txtNorm.includes('jardin')) catMatch=true;
     if(cfNorm.includes('soldadura') && txtNorm.includes('soldad')) catMatch=true;
@@ -76,7 +84,9 @@ card.className="bg-white rounded-2xl shadow-sm overflow-hidden";
 const hasFoto=b.foto && b.foto.startsWith('http');
 const hasFb=b.facebook && b.facebook.startsWith('http');
 const isIG=b.facebook && b.facebook.toLowerCase().includes('instagram');
-card.innerHTML=`${hasFoto?`<img src="${b.foto}" class="w-full h-40 object-cover" onerror="this.style.display='none'">`:''}<div class="p-4"><div class="flex gap-2 mb-2 flex-wrap"><span class="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full">${b.pueblo||''}</span><span class="text-xs bg-amber-50 text-amber-700 px-2 py-1 rounded-full">${b.categoria||''}</span><span class="ml-auto text-xs bg-green-50 text-green-700 px-2 py-1 rounded-full">Verificado</span></div><h3 class="font-bold">${b.nombre}</h3><p class="text-xs text-gray-500">${b.dueno||''}</p><p class="text-sm mt-1 text-gray-700">${b.descripcion||''}</p><div class="flex gap-2 mt-3"><a href="tel:${b.telefono}" class="flex-1 text-center bg-[#1a2a4a] text-white text-sm py-2 rounded-xl">Llamar</a><a href="https://wa.me/1${(b.telefono||'').replace(/\D/g,'')}" target="_blank" class="flex-1 text-center bg-green-500 text-white text-sm py-2 rounded-xl">WhatsApp</a>${hasFb?`<a href="${b.facebook}" target="_blank" class="px-3 ${isIG?'bg-gradient-to-br from-pink-500 to-yellow-500':'bg-blue-600'} text-white text-sm py-2 rounded-xl">${isIG?'IG':'f'}</a>`:''}</div></div>`;
+const telClean=cleanPhone(b.telefono);
+const waText=encodeURIComponent(`Hola ${b.nombre}, te encontré en La Montaña Resuelve y quisiera info de: ${b.categoria}`);
+card.innerHTML=`${hasFoto?`<img src="${b.foto}" class="w-full h-40 object-cover" onerror="this.style.display='none'">`:''}<div class="p-4"><div class="flex gap-2 mb-2 flex-wrap"><span class="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full">${b.pueblo||''}</span><span class="text-xs bg-amber-50 text-amber-700 px-2 py-1 rounded-full">${b.categoria||''}</span><span class="ml-auto text-xs bg-green-50 text-green-700 px-2 py-1 rounded-full">Verificado</span></div><h3 class="font-bold">${b.nombre}</h3><p class="text-xs text-gray-500">${b.dueno||''}</p><p class="text-sm mt-1 text-gray-700">${b.descripcion||''}</p><div class="flex gap-2 mt-3"><a href="tel:+${telClean}" class="flex-1 text-center bg-[#1a2a4a] text-white text-sm py-2 rounded-xl">Llamar</a><a href="https://wa.me/${telClean}?text=${waText}" target="_blank" class="flex-1 text-center bg-green-500 text-white text-sm py-2 rounded-xl">WhatsApp</a>${hasFb?`<a href="${b.facebook}" target="_blank" class="px-3 ${isIG?'bg-gradient-to-br from-pink-500 to-yellow-500':'bg-blue-600'} text-white text-sm py-2 rounded-xl">${isIG?'IG':'f'}</a>`:''}</div></div>`;
 grid.appendChild(card);
 });
 }
@@ -102,4 +112,4 @@ document.getElementById('cat').addEventListener('change',render);
 load();
 </script>
 </body>
-</html>
+</html>    
