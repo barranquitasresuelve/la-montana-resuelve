@@ -9,7 +9,7 @@
 <body class="bg-gray-50">
 <header class="bg-[#1a2a4a] text-white p-4 sticky top-0 z-10">
 <div class="max-w-5xl mx-auto flex justify-between items-center">
-<div><h1 class="text-xl font-bold">La Montaña <span class="text-yellow-400">Resuelve</span></h1><p class="text-xs opacity-80">Directorio Verificado Barranquitas</p></div>
+<div><h1 class="text-xl font-bold">La Montaña <span class="text-yellow-400">Resuelve</span></h1><p class="text-xs opacity-80">Directorio Verificado</p></div>
 <span id="status" class="text-xs bg-white/20 px-3 py-1 rounded-full">Cargando...</span>
 </div>
 </header>
@@ -30,10 +30,9 @@ const SHEET_URL=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=
 let data=[];
 function normalize(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
 function cleanPhone(p){
-  let d=(p||'').replace(/\D/g,'');
+  if(!p) return '';
+  let d=(''+p).replace(/\D/g,'');
   if(d.length===10) d='1'+d;
-  if(d.length===11 && d.startsWith('1')) return d;
-  if(d.length>11) return d.slice(-11);
   return d;
 }
 function containsRoot(txt, q){
@@ -45,7 +44,6 @@ function containsRoot(txt, q){
   if(q.includes('jardin') && txt.includes('jardin')) return true;
   if(q.includes('solar') && txt.includes('solar')) return true;
   if(q.includes('lavadora') && txt.includes('lavador')) return true;
-  if(q.includes('enseres') && txt.includes('enseres')) return true;
   return false;
 }
 function render(){
@@ -68,10 +66,9 @@ if(cf){
     if(cfNorm.includes('jardin') && txtNorm.includes('jardin')) catMatch=true;
     if(cfNorm.includes('soldadura') && txtNorm.includes('soldad')) catMatch=true;
     if(cfNorm.includes('lavadora') && txtNorm.includes('lavador')) catMatch=true;
-    if(cfNorm.includes('enseres') && (txtNorm.includes('enseres')||txtNorm.includes('nevera')||txtNorm.includes('estufa'))) catMatch=true;
-    if(cfNorm.includes('construccion') && (txtNorm.includes('construccion')||txtNorm.includes('madera')||txtNorm.includes('ebanist')||txtNorm.includes('gabinete'))) catMatch=true;
+    if(cfNorm.includes('enseres') && (txtNorm.includes('enseres')||txtNorm.includes('nevera'))) catMatch=true;
+    if(cfNorm.includes('construccion') && (txtNorm.includes('construccion')||txtNorm.includes('ebanist')||txtNorm.includes('gabinete'))) catMatch=true;
     if(cfNorm.includes('mascota') && txtNorm.includes('mascota')) catMatch=true;
-    if(cfNorm.includes('grooming') && txtNorm.includes('grooming')) catMatch=true;
   }
 }
 return qMatch && puebloMatch && catMatch;
@@ -79,14 +76,15 @@ return qMatch && puebloMatch && catMatch;
 document.getElementById('stats').textContent=`${f.length} negocios verificados`;
 const grid=document.getElementById('grid'); grid.innerHTML='';
 f.forEach(b=>{
-const card=document.createElement('div');
-card.className="bg-white rounded-2xl shadow-sm overflow-hidden";
 const hasFoto=b.foto && b.foto.startsWith('http');
-const hasFb=b.facebook && b.facebook.startsWith('http');
-const isIG=b.facebook && b.facebook.toLowerCase().includes('instagram');
+const hasFb=b.facebook && (b.facebook.startsWith('http') || b.facebook.toLowerCase().includes('facebook') || b.facebook.toLowerCase().includes('instagram'));
 const telClean=cleanPhone(b.telefono);
-const waText=encodeURIComponent(`Hola ${b.nombre}, te encontré en La Montaña Resuelve y quisiera info de: ${b.categoria}`);
-card.innerHTML=`${hasFoto?`<img src="${b.foto}" class="w-full h-40 object-cover" onerror="this.style.display='none'">`:''}<div class="p-4"><div class="flex gap-2 mb-2 flex-wrap"><span class="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full">${b.pueblo||''}</span><span class="text-xs bg-amber-50 text-amber-700 px-2 py-1 rounded-full">${b.categoria||''}</span><span class="ml-auto text-xs bg-green-50 text-green-700 px-2 py-1 rounded-full">Verificado</span></div><h3 class="font-bold">${b.nombre}</h3><p class="text-xs text-gray-500">${b.dueno||''}</p><p class="text-sm mt-1 text-gray-700">${b.descripcion||''}</p><div class="flex gap-2 mt-3"><a href="tel:+${telClean}" class="flex-1 text-center bg-[#1a2a4a] text-white text-sm py-2 rounded-xl">Llamar</a><a href="https://wa.me/${telClean}?text=${waText}" target="_blank" class="flex-1 text-center bg-green-500 text-white text-sm py-2 rounded-xl">WhatsApp</a>${hasFb?`<a href="${b.facebook}" target="_blank" class="px-3 ${isIG?'bg-gradient-to-br from-pink-500 to-yellow-500':'bg-blue-600'} text-white text-sm py-2 rounded-xl">${isIG?'IG':'f'}</a>`:''}</div></div>`;
+const waClean=cleanPhone(b.whatsapp||b.telefono);
+const waText=encodeURIComponent(`Hola ${b.nombre}, te vi en La Montaña Resuelve y quiero info de ${b.categoria}`);
+const fbLink = b.facebook && b.facebook.startsWith('http')? b.facebook : (b.facebook? 'https://'+b.facebook : '');
+const card=document.createElement('div');
+card.className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100";
+card.innerHTML=`${hasFoto?`<img src="${b.foto}" class="w-full h-40 object-cover" onerror="this.style.display='none'">`:''}<div class="p-4"><div class="flex gap-2 mb-2 flex-wrap"><span class="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full">${b.pueblo||''}</span><span class="text-xs bg-amber-50 text-amber-700 px-2 py-1 rounded-full">${b.categoria||''}</span><span class="ml-auto text-xs bg-green-50 text-green-700 px-2 py-1 rounded-full">✓ Verificado</span></div><h3 class="font-bold text-[#1a2a4a]">${b.nombre}</h3><p class="text-xs text-gray-500">${b.dueno||''}</p><p class="text-xs text-gray-600 mt-1 font-mono">${b.telefono||''} ${b.whatsapp && b.whatsapp!==b.telefono? ' / WA: '+b.whatsapp : ''}</p><p class="text-sm mt-2 text-gray-700">${b.descripcion||''}</p><div class="flex gap-2 mt-4"><a href="tel:+${telClean}" class="flex-1 text-center bg-[#1a2a4a] text-white text-sm py-3 rounded-xl font-bold">📞 Llamar</a><a href="https://wa.me/${waClean}?text=${waText}" target="_blank" class="flex-1 text-center bg-[#25D366] text-white text-sm py-3 rounded-xl font-bold">WhatsApp</a>${hasFb && fbLink?`<a href="${fbLink}" target="_blank" class="px-4 bg-blue-600 text-white text-sm py-3 rounded-xl">f</a>`:''}</div></div>`;
 grid.appendChild(card);
 });
 }
@@ -97,13 +95,30 @@ const t=await r.text();
 const rows=[]; let cur=[]; let val=""; let inQ=false;
 for(let i=0;i<t.length;i++){const c=t[i]; if(c=='"'){ if(inQ && t[i+1]=='"'){val+='"'; i++;} else {inQ=!inQ;} } else if(!inQ && c==','){cur.push(val.trim()); val="";} else if(!inQ && (c=='\n' || c=='\r')){ if(val||cur.length){cur.push(val.trim()); rows.push(cur); cur=[]; val="";} } else {val+=c;} }
 if(val||cur.length){cur.push(val.trim()); rows.push(cur);}
-const headers=rows[0].map(h=>normalize(h));
-const find=(keys)=>headers.findIndex(h=>keys.some(k=>normalize(h).includes(normalize(k))));
-const idx={ nombre: find(['nombre del nego','nombre']), dueno: find(['dueno','contacto']), pueblo: find(['pueblo','municipio']), categoria: find(['categoria']), descripcion: find(['descripcion','servicio','detalle']), telefono: find(['telefono','tel','cel']), foto: find(['foto','imagen','image','photo']), facebook: find(['facebook','instagram','fb','ig','social']) };
-let list=rows.slice(1).map(r=>{ const get=(i)=> (i>=0 && r[i]?r[i].trim():''); return {nombre:get(idx.nombre)||r[0]||'', dueno:get(idx.dueno), pueblo:get(idx.pueblo), categoria:get(idx.categoria), descripcion:get(idx.descripcion), telefono:get(idx.telefono), foto:get(idx.foto), facebook:get(idx.facebook)}; });
-list=list.filter(d=>{ if(!d.nombre) return false; const l=normalize(d.nombre); if(l.includes('nombre del negocio')) return false; return true; });
-if(list.length>0){ data=list; document.getElementById('status').textContent='Conectado en vivo'; document.getElementById('status').className='text-xs bg-green-500 px-3 py-1 rounded-full'; } else throw 'vacio';
-}catch(e){ document.getElementById('status').textContent='Modo demo - '+e; }
+// COLUMNAS FIJAS SEGUN TU FOTO: B=Nombre(1), C=Dueño(2), D=Pueblo(3), E=Categoria(4), F=Desc(5), G=Tel(6), H=WA(7), I=FB(8)
+let list=rows.slice(1).map(r=>{
+  return {
+    nombre:(r[1]||'').trim(),
+    dueno:(r[2]||'').trim(),
+    pueblo:(r[3]||'').trim(),
+    categoria:(r[4]||'').trim(),
+    descripcion:(r[5]||'').trim(),
+    telefono:(r[6]||'').trim(),
+    whatsapp:(r[7]||'').trim(),
+    facebook:(r[8]||'').trim(),
+    foto:(r[10]||r[9]||'').trim()
+  };
+});
+list=list.filter(d=>d.nombre &&!normalize(d.nombre).includes('nombre del negocio'));
+if(list.length>0){
+  data=list;
+  document.getElementById('status').textContent='Conectado en vivo ('+list.length+')';
+  document.getElementById('status').className='text-xs bg-green-500 px-3 py-1 rounded-full text-white';
+} else throw 'vacio';
+}catch(e){
+  document.getElementById('status').textContent='Error: '+e;
+  console.error(e);
+}
 render();
 }
 document.getElementById('search').addEventListener('input',render);
@@ -112,4 +127,4 @@ document.getElementById('cat').addEventListener('change',render);
 load();
 </script>
 </body>
-</html>    
+</html>
