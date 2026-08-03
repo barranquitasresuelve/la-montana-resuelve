@@ -96,37 +96,59 @@ card.innerHTML=`${hasFoto?`<img src="${b.foto}" class="w-full h-40 object-cover"
 grid.appendChild(card);
 });
 }
+
 async function load(){
-try{
-const r=await fetch(SHEET_URL);
-const t=await r.text();
-const rows=[]; let cur=[]; let val=""; let inQ=false;
-for(let i=0;i<t.length;i++){const c=t[i]; if(c=='"'){ if(inQ && t[i+1]=='"'){val+='"'; i++;} else {inQ=!inQ;} } else if(!inQ && c==','){cur.push(val.trim()); val="";} else if(!inQ && (c=='\n' || c=='\r')){ if(val||cur.length){cur.push(val.trim()); rows.push(cur); cur=[]; val="";} } else {val+=c;} }
-if(val||cur.length){cur.push(val.trim()); rows.push(cur);}
-let list=rows.slice(1).map(r=>{
-  return {
-    nombre:(r[1]||'').trim(),
-    dueno:(r[2]||'').trim(),
-    pueblo:(r[3]||'').trim(),
-    categoria:(r[4]||'').trim(),
-    descripcion:(r[5]||'').trim(),
-    telefono:(r[6]||'').trim(),
-    whatsapp:(r[7]||'').trim(),
-    facebook:(r[8]||'').trim(),
-    foto:(r[10]||r[9]||'').trim()
-  };
-});
-list=list.filter(d=>d.nombre && !normalize(d.nombre).includes('nombre del negocio'));
-if(list.length>0){
-  data=list;
-  document.getElementById('status').textContent='Conectado en vivo ('+list.length+')';
-  document.getElementById('status').className='text-xs bg-green-500 px-3 py-1 rounded-full text-white';
-} else throw 'vacio';
-}catch(e){
-  document.getElementById('status').textContent='Error: '+e;
+  const sheetsToTry = ["Form Responses 2", "Form Responses 1", "Hoja 1", "Form Responses 3", "Respuestas de formulario 1", "Sheet1"];
+  let allRows = [];
+  document.getElementById('status').textContent='Conectando...';
+  for(let sheetName of sheetsToTry){
+    try{
+      const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}&t=${Date.now()}`;
+      const r=await fetch(url, {cache:'no-store'});
+      if(!r.ok) continue;
+      const t=await r.text();
+      if(!t || t.toLowerCase().includes('<!doctype')) continue;
+      const rows=[]; let cur=[]; let val=""; let inQ=false;
+      for(let i=0;i<t.length;i++){const c=t[i]; if(c=='"'){ if(inQ && t[i+1]=='"'){val+='"'; i++;} else {inQ=!inQ;} } else if(!inQ && c==','){cur.push(val.trim()); val="";} else if(!inQ && (c=='
+' || c=='')){ if(val||cur.length){cur.push(val.trim()); rows.push(cur); cur=[]; val="";} } else {val+=c;} }
+      if(val||cur.length){cur.push(val.trim()); rows.push(cur);}
+      if(rows.length>1) allRows = allRows.concat(rows.slice(1));
+    }catch(e){ console.log("skip sheet", sheetName, e); }
+  }
+  try{
+  // Deduplicate by nombre+telefono
+  const map = new Map();
+  let list = allRows.map(r=>{
+    return {
+      nombre:(r[1]||'').trim(),
+      dueno:(r[2]||'').trim(),
+      pueblo:(r[3]||'').trim(),
+      categoria:(r[4]||'').trim(),
+      descripcion:(r[5]||'').trim(),
+      telefono:(r[6]||'').trim(),
+      whatsapp:(r[7]||'').trim(),
+      facebook:(r[8]||'').trim(),
+      foto:(r[10]||r[9]||'').trim()
+    };
+  }).filter(d=>d.nombre && !normalize(d.nombre).includes('nombre del negocio'));
+  
+  list.forEach(d=>{
+    const key = normalize(d.nombre+"-"+d.telefono);
+    if(!map.has(key)) map.set(key, d);
+  });
+  data = Array.from(map.values());
+  if(data.length>0){
+    document.getElementById('status').textContent='Conectado en vivo ('+data.length+') - leyendo todas las pestañas';
+    document.getElementById('status').className='text-xs bg-green-500 px-3 py-1 rounded-full text-white';
+  } else {
+    document.getElementById('status').textContent='0 negocios - revisa pestañas';
+  }
+  }catch(e){
+    document.getElementById('status').textContent='Error: '+e;
+  }
+  render();
 }
-render();
-}
+
 document.getElementById('search').addEventListener('input',render);
 document.getElementById('pueblo').addEventListener('change',render);
 document.getElementById('cat').addEventListener('change',render);
