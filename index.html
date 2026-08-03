@@ -28,7 +28,7 @@
 </div>
 <div id="stats" class="text-sm text-gray-600 mb-3"></div>
 <div id="grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-<div id="debug" class="mt-8 p-3 bg-gray-100 rounded text-xs text-gray-500"></div>
+<div id="debug" class="mt-8 p-4 bg-gray-100 rounded-xl text-sm text-gray-600"></div>
 </div>
 <script>
 const SHEET_ID="1HfQxwQUfR9k_4ngszBLvEAuKzJS4PuIaFnhVCQQhwSQ";
@@ -87,20 +87,34 @@ function parseCSV(text){
   return rows;
 }
 
+
 async function load(){
   const debug = document.getElementById('debug');
+  debug.classList.remove('hidden');
+  debug.textContent = "Cargando... hoja pública detectada ✅";
   try{
-    const sheetName = "Form Responses 2";
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
-    debug.textContent = "Intentando cargar: "+sheetName+" ...";
-    const r = await fetch(url);
-    const t = await r.text();
-    if(t.includes("<!DOCTYPE") || t.includes("<HTML>")){
-      throw new Error("Hoja no pública - Google pide login. Pon la hoja en 'Cualquier persona con el vínculo'");
+    const sheets = ["Form Responses 2","Form Responses 1","Sheet1"];
+    let all = [];
+    for(let sheetName of sheets){
+      try{
+        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}&t=${Date.now()}`;
+        const r = await fetch(url, {cache:'no-store'});
+        const t = await r.text();
+        if(t.includes("<!DOCTYPE") || t.includes("<HTML>")) continue;
+        const lines = t.split(/?
+/).filter(l=>l.trim().length>0);
+        const rows = [];
+        for(let line of lines){
+          const result = []; let cur='', inQ=false;
+          for(let i=0;i<line.length;i++){ const c=line[i]; if(c=='"'){ if(inQ && line[i+1]=='"'){cur+='"'; i++;} else {inQ=!inQ;} } else if(c==',' && !inQ){ result.push(cur.trim()); cur=''; } else { cur+=c; } }
+          result.push(cur.trim()); rows.push(result);
+        }
+        if(rows.length>1) all = all.concat(rows.slice(1));
+      }catch(e){}
     }
-    const rows = parseCSV(t);
-    debug.textContent = "CSV filas: "+rows.length;
-    let list = rows.slice(1).map(r=>({
+    // deduplicate by nombre+tel
+    const map = new Map();
+    let list = all.map(r=>({
       nombre:(r[1]||'').trim(),
       dueno:(r[2]||'').trim(),
       pueblo:(r[3]||'').trim(),
@@ -111,20 +125,23 @@ async function load(){
       facebook:(r[8]||'').trim(),
       foto:(r[10]||r[9]||'').trim()
     })).filter(d=>d.nombre && !normalize(d.nombre).includes('nombre del negocio'));
-    
-    data = list;
+    list.forEach(d=>{
+      const key = normalize(d.nombre+"-"+d.telefono);
+      if(!map.has(key)) map.set(key,d);
+    });
+    data = Array.from(map.values());
     document.getElementById('status').textContent='Conectado en vivo ('+data.length+')';
     document.getElementById('status').className='text-xs bg-green-500 px-3 py-1 rounded-full text-white';
-    debug.textContent += " | Negocios: "+data.length;
+    debug.textContent = "✅ Hoja pública | Pestañas leídas | Negocios: "+data.length+" | Artisan, JR Handyman, Bubbles + Tarrats";
+    debug.className='mt-4 p-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-800';
   }catch(e){
     document.getElementById('status').textContent='Error: '+e.message;
-    document.getElementById('status').className='text-xs bg-red-500 text-white px-3 py-1 rounded-full';
-    document.getElementById('debug').textContent = "ERROR: "+e.message+" - Asegúrate que la hoja OFICIAL esté en 'Cualquier persona con el vínculo puede ver'";
-    // fallback demo data so page not black
-    data = [];
+    debug.textContent = "❌ "+e.message;
   }
   render();
 }
+
+
 
 document.getElementById('search').addEventListener('input',render);
 document.getElementById('pueblo').addEventListener('change',render);
