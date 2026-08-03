@@ -9,16 +9,15 @@
 <meta name="theme-color" content="#1a2a4a">
 </head>
 <body class="bg-gray-50">
-<header class="bg-[#1a2a4a] text-white p-4 sticky top-0 z-10">
+<header class="bg-[#1a2a4a] text-white p-4 sticky top-0 z-20">
 <div class="max-w-5xl mx-auto flex justify-between items-center">
 <div><h1 class="text-xl font-bold">La Montaña <span class="text-yellow-400">Resuelve</span></h1><p class="text-xs opacity-80">Directorio Verificado Centro PR</p></div>
-<span id="status" class="text-xs bg-white/20 px-3 py-1 rounded-full">Cargando...</span>
+<span id="status" class="text-xs bg-yellow-400 text-black px-3 py-1 rounded-full font-bold">Cargando...</span>
 </div>
 </header>
 <div class="bg-yellow-400 text-[#1a2a4a] text-center py-2 text-sm font-bold sticky top-[64px] z-10">
 <a href="https://docs.google.com/forms/d/14vyiDSWsfO1rnnh8MkUUkgCZbsQ0sYmFmXQzRgm3aAo/viewform" target="_blank" class="underline">¿Tienes negocio en Barranquitas, Comerío, Corozal, Naranjito? 📲 Regístralo GRATIS aquí →</a>
 </div>
-
 <div class="max-w-5xl mx-auto p-4">
 <div class="bg-white rounded-2xl shadow-sm p-4 mb-4 flex flex-col gap-2">
 <input id="search" placeholder="Buscar: enfermera, piscina, generador, cerrajero..." class="w-full border rounded-xl p-3">
@@ -29,97 +28,79 @@
 </div>
 <div id="stats" class="text-sm text-gray-600 mb-3"></div>
 <div id="grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+<div id="debug" class="mt-8 p-3 bg-gray-100 rounded text-xs text-gray-500"></div>
 </div>
 <script>
 const SHEET_ID="1HfQxwQUfR9k_4ngszBLvEAuKzJS4PuIaFnhVCQQhwSQ";
-const SHEET_URL=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Form%20Responses%202`;
 let data=[];
+
 function normalize(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
-function cleanPhone(p){
-  if(!p) return '';
-  let d=(''+p).replace(/\D/g,'');
-  if(d.length===10) d='1'+d;
-  return d;
-}
-function containsRoot(txt, q){
-  if(!q) return true;
-  if(txt.includes(q)) return true;
-  const roots=['ebanist','albanil','plomer','jardin','solar','lavador','enseres','piscin','enferm','cuidador','cerraj','generador','excav','plaga','framing','drywall','mascota','grooming','construccion','gabinete'];
-  for(let r of roots){ if(q.includes(r) && txt.includes(r)) return true; }
-  return false;
-}
+function cleanPhone(p){ if(!p) return ''; let d=(''+p).replace(/\D/g,''); if(d.length===10) d='1'+d; return d; }
+function containsRoot(txt, q){ if(!q) return true; if(txt.includes(q)) return true; const roots=['ebanist','albanil','plomer','jardin','solar','lavador','enseres','piscin','enferm','cuidador','cerraj','generador','excav','plaga','framing','drywall','mascota','grooming','construccion','gabinete']; for(let r of roots){ if(q.includes(r) && txt.includes(r)) return true; } return false; }
+
 function render(){
-const q=normalize(document.getElementById('search').value);
-const pf=document.getElementById('pueblo').value;
-const cf=document.getElementById('cat').value;
-const cfNorm=normalize(cf);
-let f=data.filter(d=>{
-const txtNorm=normalize(d.nombre+" "+d.categoria+" "+d.pueblo+" "+d.descripcion+" "+d.dueno);
-const catNorm=normalize(d.categoria+" "+d.descripcion);
-const qMatch=!q||containsRoot(txtNorm,q);
-const puebloMatch=!pf|| pf==='Todo el Centro' || normalize(d.pueblo).includes(normalize(pf));
-let catMatch=true;
-if(cf){
-  catMatch = containsRoot(catNorm, cfNorm) || containsRoot(txtNorm, cfNorm);
-  if(!catMatch){
-    if(cfNorm.includes('salud') && (txtNorm.includes('enferm')||txtNorm.includes('cuidador')||txtNorm.includes('terap')||txtNorm.includes('medico')||txtNorm.includes('salud'))) catMatch=true;
-    if(cfNorm.includes('piscin') && txtNorm.includes('piscin')) catMatch=true;
-    if(cfNorm.includes('cerraj') && txtNorm.includes('cerraj')) catMatch=true;
-    if(cfNorm.includes('generador') && txtNorm.includes('generador')) catMatch=true;
-    if(cfNorm.includes('excav') && (txtNorm.includes('excav')||txtNorm.includes('equipo pesado')||txtNorm.includes('tierra'))) catMatch=true;
-    if(cfNorm.includes('plaga') && (txtNorm.includes('plaga')||txtNorm.includes('fumig'))) catMatch=true;
-    if(cfNorm.includes('framing') && (txtNorm.includes('framing')||txtNorm.includes('drywall')||txtNorm.includes('gypsum'))) catMatch=true;
-    if(cfNorm.includes('ebanist') && txtNorm.includes('ebanist')) catMatch=true;
-    if(cfNorm.includes('albanil') && (txtNorm.includes('albanil')||txtNorm.includes('bloque'))) catMatch=true;
-    if(cfNorm.includes('solar') && txtNorm.includes('solar')) catMatch=true;
-    if(cfNorm.includes('jardin') && txtNorm.includes('jardin')) catMatch=true;
-    if(cfNorm.includes('soldadura') && txtNorm.includes('soldad')) catMatch=true;
-    if(cfNorm.includes('lavadora') && txtNorm.includes('lavador')) catMatch=true;
-    if(cfNorm.includes('enseres') && (txtNorm.includes('enseres')||txtNorm.includes('nevera')||txtNorm.includes('estufa'))) catMatch=true;
-    if(cfNorm.includes('construccion') && (txtNorm.includes('construccion')||txtNorm.includes('madera')||txtNorm.includes('ebanist')||txtNorm.includes('gabinete'))) catMatch=true;
-  }
+  const q=normalize(document.getElementById('search').value);
+  const pf=document.getElementById('pueblo').value;
+  const cf=document.getElementById('cat').value;
+  const cfNorm=normalize(cf);
+  let f=data.filter(d=>{
+    const txtNorm=normalize(d.nombre+" "+d.categoria+" "+d.pueblo+" "+d.descripcion+" "+d.dueno);
+    const catNorm=normalize(d.categoria+" "+d.descripcion);
+    const qMatch=!q||containsRoot(txtNorm,q);
+    const puebloMatch=!pf|| pf==='Todo el Centro' || normalize(d.pueblo).includes(normalize(pf));
+    let catMatch=true;
+    if(cf){ catMatch = containsRoot(catNorm, cfNorm) || containsRoot(txtNorm, cfNorm); }
+    return qMatch && puebloMatch && catMatch;
+  });
+  document.getElementById('stats').textContent=`${f.length} negocios verificados en el Centro`;
+  const grid=document.getElementById('grid'); grid.innerHTML='';
+  f.forEach(b=>{
+    const hasFoto=b.foto && b.foto.startsWith('http');
+    const telClean=cleanPhone(b.telefono);
+    const waClean=cleanPhone(b.whatsapp||b.telefono);
+    const waText=encodeURIComponent(`Hola ${b.nombre}, te vi en La Montaña Resuelve y quiero info`);
+    const fbLink = b.facebook && b.facebook.startsWith('http')? b.facebook : (b.facebook? 'https://'+b.facebook : '');
+    const card=document.createElement('div');
+    card.className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100";
+    card.innerHTML=`${hasFoto?`<img src="${b.foto}" class="w-full h-40 object-cover" onerror="this.style.display='none'">`:''}<div class="p-4"><div class="flex gap-2 mb-2 flex-wrap"><span class="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full">${b.pueblo||''}</span><span class="text-xs bg-amber-50 text-amber-700 px-2 py-1 rounded-full">${b.categoria||''}</span><span class="ml-auto text-xs bg-green-50 text-green-700 px-2 py-1 rounded-full">✓ Verificado</span></div><h3 class="font-bold text-[#1a2a4a]">${b.nombre}</h3><p class="text-xs text-gray-500">${b.dueno||''}</p><p class="text-xs text-gray-600 mt-1 font-mono">${b.telefono||''}</p><p class="text-sm mt-2 text-gray-700">${b.descripcion||''}</p><div class="flex gap-2 mt-4"><a href="tel:+${telClean}" class="flex-1 text-center bg-[#1a2a4a] text-white text-sm py-3 rounded-xl font-bold">📞 Llamar</a><a href="https://wa.me/${waClean}?text=${waText}" target="_blank" class="flex-1 text-center bg-[#25D366] text-white text-sm py-3 rounded-xl font-bold">WhatsApp</a></div></div>`;
+    grid.appendChild(card);
+  });
 }
-return qMatch && puebloMatch && catMatch;
-});
-document.getElementById('stats').textContent=`${f.length} negocios verificados en el Centro`;
-const grid=document.getElementById('grid'); grid.innerHTML='';
-f.forEach(b=>{
-const hasFoto=b.foto && b.foto.startsWith('http');
-const hasFb=b.facebook && b.facebook.length>3;
-const telClean=cleanPhone(b.telefono);
-const waClean=cleanPhone(b.whatsapp||b.telefono);
-const waText=encodeURIComponent(`Hola ${b.nombre}, te vi en La Montaña Resuelve y quiero info de ${b.categoria} en ${b.pueblo}`);
-const fbLink = b.facebook && b.facebook.startsWith('http')? b.facebook : (b.facebook? 'https://'+b.facebook : '');
-const card=document.createElement('div');
-card.className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100";
-card.innerHTML=`${hasFoto?`<img src="${b.foto}" class="w-full h-40 object-cover" onerror="this.style.display='none'">`:''}<div class="p-4"><div class="flex gap-2 mb-2 flex-wrap"><span class="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full">${b.pueblo||''}</span><span class="text-xs bg-amber-50 text-amber-700 px-2 py-1 rounded-full">${b.categoria||''}</span><span class="ml-auto text-xs bg-green-50 text-green-700 px-2 py-1 rounded-full">✓ Verificado</span></div><h3 class="font-bold text-[#1a2a4a]">${b.nombre}</h3><p class="text-xs text-gray-500">${b.dueno||''}</p><p class="text-xs text-gray-600 mt-1 font-mono">${b.telefono||''} ${b.whatsapp && b.whatsapp!==b.telefono? ' / WA: '+b.whatsapp : ''}</p><p class="text-sm mt-2 text-gray-700">${b.descripcion||''}</p><div class="flex gap-2 mt-4"><a href="tel:+${telClean}" class="flex-1 text-center bg-[#1a2a4a] text-white text-sm py-3 rounded-xl font-bold">📞 Llamar</a><a href="https://wa.me/${waClean}?text=${waText}" target="_blank" class="flex-1 text-center bg-[#25D366] text-white text-sm py-3 rounded-xl font-bold">WhatsApp</a>${hasFb && fbLink?`<a href="${fbLink}" target="_blank" class="px-4 bg-blue-600 text-white text-sm py-3 rounded-xl">f</a>`:''}</div></div>`;
-grid.appendChild(card);
-});
+
+function parseCSV(text){
+  const lines = text.split(/\r?\n/).filter(l=>l.trim().length>0);
+  const rows = [];
+  for(let line of lines){
+    // simple split handling quoted commas
+    const result = [];
+    let cur = '', inQ=false;
+    for(let i=0;i<line.length;i++){
+      const c=line[i];
+      if(c=='"'){
+        if(inQ && line[i+1]=='"'){ cur+='"'; i++; } else { inQ=!inQ; }
+      } else if(c==',' && !inQ){ result.push(cur.trim()); cur=''; }
+      else { cur+=c; }
+    }
+    result.push(cur.trim());
+    rows.push(result);
+  }
+  return rows;
 }
 
 async function load(){
-  const sheetsToTry = ["Form Responses 2", "Form Responses 1", "Hoja 1", "Form Responses 3", "Respuestas de formulario 1", "Sheet1"];
-  let allRows = [];
-  document.getElementById('status').textContent='Conectando...';
-  for(let sheetName of sheetsToTry){
-    try{
-      const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}&t=${Date.now()}`;
-      const r=await fetch(url, {cache:'no-store'});
-      if(!r.ok) continue;
-      const t=await r.text();
-      if(!t || t.toLowerCase().includes('<!doctype')) continue;
-      const rows=[]; let cur=[]; let val=""; let inQ=false;
-      for(let i=0;i<t.length;i++){const c=t[i]; if(c=='"'){ if(inQ && t[i+1]=='"'){val+='"'; i++;} else {inQ=!inQ;} } else if(!inQ && c==','){cur.push(val.trim()); val="";} else if(!inQ && (c=='
-' || c=='')){ if(val||cur.length){cur.push(val.trim()); rows.push(cur); cur=[]; val="";} } else {val+=c;} }
-      if(val||cur.length){cur.push(val.trim()); rows.push(cur);}
-      if(rows.length>1) allRows = allRows.concat(rows.slice(1));
-    }catch(e){ console.log("skip sheet", sheetName, e); }
-  }
+  const debug = document.getElementById('debug');
   try{
-  // Deduplicate by nombre+telefono
-  const map = new Map();
-  let list = allRows.map(r=>{
-    return {
+    const sheetName = "Form Responses 2";
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+    debug.textContent = "Intentando cargar: "+sheetName+" ...";
+    const r = await fetch(url);
+    const t = await r.text();
+    if(t.includes("<!DOCTYPE") || t.includes("<HTML>")){
+      throw new Error("Hoja no pública - Google pide login. Pon la hoja en 'Cualquier persona con el vínculo'");
+    }
+    const rows = parseCSV(t);
+    debug.textContent = "CSV filas: "+rows.length;
+    let list = rows.slice(1).map(r=>({
       nombre:(r[1]||'').trim(),
       dueno:(r[2]||'').trim(),
       pueblo:(r[3]||'').trim(),
@@ -129,22 +110,18 @@ async function load(){
       whatsapp:(r[7]||'').trim(),
       facebook:(r[8]||'').trim(),
       foto:(r[10]||r[9]||'').trim()
-    };
-  }).filter(d=>d.nombre && !normalize(d.nombre).includes('nombre del negocio'));
-  
-  list.forEach(d=>{
-    const key = normalize(d.nombre+"-"+d.telefono);
-    if(!map.has(key)) map.set(key, d);
-  });
-  data = Array.from(map.values());
-  if(data.length>0){
-    document.getElementById('status').textContent='Conectado en vivo ('+data.length+') - leyendo todas las pestañas';
+    })).filter(d=>d.nombre && !normalize(d.nombre).includes('nombre del negocio'));
+    
+    data = list;
+    document.getElementById('status').textContent='Conectado en vivo ('+data.length+')';
     document.getElementById('status').className='text-xs bg-green-500 px-3 py-1 rounded-full text-white';
-  } else {
-    document.getElementById('status').textContent='0 negocios - revisa pestañas';
-  }
+    debug.textContent += " | Negocios: "+data.length;
   }catch(e){
-    document.getElementById('status').textContent='Error: '+e;
+    document.getElementById('status').textContent='Error: '+e.message;
+    document.getElementById('status').className='text-xs bg-red-500 text-white px-3 py-1 rounded-full';
+    document.getElementById('debug').textContent = "ERROR: "+e.message+" - Asegúrate que la hoja OFICIAL esté en 'Cualquier persona con el vínculo puede ver'";
+    // fallback demo data so page not black
+    data = [];
   }
   render();
 }
@@ -154,10 +131,9 @@ document.getElementById('pueblo').addEventListener('change',render);
 document.getElementById('cat').addEventListener('change',render);
 load();
 </script>
-
 <div class="max-w-5xl mx-auto p-4 text-center mt-8">
 <a href="https://docs.google.com/forms/d/14vyiDSWsfO1rnnh8MkUUkgCZbsQ0sYmFmXQzRgm3aAo/viewform" target="_blank" class="inline-block bg-[#1a2a4a] text-white px-6 py-3 rounded-xl font-bold">➕ Registrar mi negocio GRATIS</a>
-<p class="text-xs text-gray-500 mt-2">Hoja oficial conectada en vivo: 1HfQxw...hwSQ</p>
+<p class="text-xs text-gray-500 mt-2">V17 - Hoja oficial: 1HfQxw...hwSQ - Form Responses 2</p>
 </div>
 </body>
 </html>
