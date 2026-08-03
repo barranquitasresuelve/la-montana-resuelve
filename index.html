@@ -1,24 +1,89 @@
 <!DOCTYPE html>
-<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>La Montaña Resuelve</title><script src="https://cdn.tailwindcss.com"></script></head>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>La Montaña Resuelve - Directorio</title>
+<meta name="theme-color" content="#1a2a4a">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
 <body class="bg-gray-50">
-<header class="bg-[#1a2a4a] text-white p-4 sticky top-0 z-20"><div class="max-w-5xl mx-auto flex justify-between items-center"><div><h1 class="text-xl font-bold">La Montaña <span class="text-yellow-400">Resuelve</span></h1><p class="text-xs opacity-80">Directorio Verificado Centro PR</p></div><span id="status" class="text-xs bg-yellow-400 text-black px-3 py-1 rounded-full font-bold">Cargando...</span></div></header>
-<div class="bg-yellow-400 text-[#1a2a4a] text-center py-2 text-sm font-bold sticky top-[64px] z-10"><a href="https://docs.google.com/forms/d/14vyiDSWsfO1rnnh8MkUUkgCZbsQ0sYmFmXQzRgm3aAo/viewform" target="_blank" class="underline">¿Tienes negocio en Barranquitas, Comerío, Corozal, Naranjito? 📲 Regístralo GRATIS aquí →</a></div>
-<div class="max-w-5xl mx-auto p-4">
-<div class="bg-white rounded-2xl shadow-sm p-4 mb-4"><input id="search" placeholder="Buscar: enfermera, piscina, generador, cerrajero..." class="w-full border rounded-xl p-3 mb-2"><div class="grid grid-cols-2 gap-2"><select id="pueblo" class="border rounded-xl p-3"><option value="">Todos pueblos</option><option>Barranquitas</option><option>Comerio</option><option>Naranjito</option><option>Orocovis</option><option>Corozal</option><option>Aibonito</option><option>Todo el Centro</option></select><select id="cat" class="border rounded-xl p-3"><option value="">Todas categorías</option><option>Salud y Cuidado</option><option>Ebanistería y Gabinetes</option><option>Albañilería</option><option>Construcción General</option><option>Framing y Drywall</option><option>Excavación y Equipo Pesado</option><option>Soldadura y Herrería</option><option>Plomería</option><option>Electricidad</option><option>Energía Solar</option><option>Generadores</option><option>A/C y Refrigeración</option><option>Sellado de Techos</option><option>Cerrajería Hogar y Auto</option><option>Jardinería y Landscaping</option><option>Control de Plagas</option><option>Piscinas</option><option>Reparación Enseres Eléctricos</option><option>Reparación Lavadoras y Secadoras</option><option>Mecánica y Gomera</option><option>Limpieza Residencial</option><option>Belleza, Barbería y Uñas</option><option>Mascotas y Grooming</option><option>Comida y Catering</option><option>Tecnología y Celulares</option><option>Otros Servicios</option></select></div></div>
+<header class="bg-[#1a2a4a] text-white p-4 sticky top-0 z-20">
+<div class="max-w-6xl mx-auto flex justify-between items-center">
+<div><h1 class="text-xl font-bold">La Montaña <span class="text-yellow-400">Resuelve</span></h1><p class="text-xs opacity-80">El vecino que resuelve - 7 pueblos</p></div>
+<div class="flex gap-2"><span id="status" class="text-xs bg-yellow-400 text-black px-3 py-1 rounded-full font-bold">Cargando...</span><button id="installBtn" class="hidden text-xs bg-white text-[#1a2a4a] px-3 py-1 rounded-full font-bold">📲 Instalar App</button></div>
+</div>
+</header>
+
+<div class="bg-yellow-400 text-[#1a2a4a] text-center py-2 text-sm font-bold sticky top-[64px] z-10 flex justify-center gap-2 flex-wrap px-2">
+<a href="https://docs.google.com/forms/d/14vyiDSWsfO1rnnh8MkUUkgCZbsQ0sYmFmXQzRgm3aAo/viewform" target="_blank" class="underline">➕ Registrar negocio GRATIS</a>
+<span class="hidden md:inline">|</span>
+<button onclick="document.getElementById('emergency').scrollIntoView({behavior:'smooth'})" class="underline">🚨 Necesito HOY</button>
+</div>
+
+<div class="max-w-6xl mx-auto p-4">
+
+<!-- EMERGENCY -->
+<div id="emergency" class="bg-red-50 border-2 border-red-200 rounded-2xl p-4 mb-4">
+<h2 class="font-bold text-red-800 mb-2">🚨 ¿Necesitas HOY? Llama directo</h2>
+<div class="flex flex-wrap gap-2" id="emergencyBtns"></div>
+</div>
+
+<!-- SEARCH -->
+<div class="bg-white rounded-2xl shadow-sm p-4 mb-4">
+<input id="search" placeholder="Buscar: plomero, enfermera, taxi, placas solares, piscina..." class="w-full border rounded-xl p-3 mb-2 text-base">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+<select id="pueblo" class="border rounded-xl p-3 text-base"><option value="">Todos los pueblos (7)</option><option>Barranquitas</option><option>Comerio</option><option>Naranjito</option><option>Orocovis</option><option>Corozal</option><option>Aibonito</option><option>Cidra</option><option>Todo el Centro</option></select>
+<select id="cat" class="border rounded-xl p-3 text-base"><option value="">Todas las categorías (35+)</option></select>
+<select id="sort" class="border rounded-xl p-3 text-base"><option value="reciente">Más recientes</option><option value="nombre">Nombre A-Z</option></select>
+</div>
+</div>
+
 <div id="stats" class="text-sm text-gray-600 mb-3"></div>
 <div id="grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
 <div id="debug" class="mt-8 p-4 bg-green-50 border rounded-xl text-sm"></div>
 </div>
+
+<!-- FOOTER INSTALL -->
+<div class="max-w-6xl mx-auto p-4 text-center pb-20">
+<a href="https://docs.google.com/forms/d/14vyiDSWsfO1rnnh8MkUUkgCZbsQ0sYmFmXQzRgm3aAo/viewform" target="_blank" class="inline-block bg-[#1a2a4a] text-white px-8 py-4 rounded-xl font-bold text-lg">➕ Registrar mi negocio GRATIS</a>
+<p class="text-xs text-gray-400 mt-4">V22 PWA - Instalable - Categorías Completas - Multi-categoría</p>
+<p id="pwaHelp" class="text-xs text-gray-500 mt-2">En iPhone: Comparte → Añadir a pantalla de inicio. En Android: Menú → Instalar app</p>
+</div>
+
 <script>
 const SHEET_ID="1HfQxwQUfR9k_4ngszBLvEAuKzJS4PuIaFnhVCQQhwSQ";
+const CATEGORIAS=[
+"Salud y Cuidado","Cuidado Adulto Mayor y Encamados","Enfermeros y Cuidadores",
+"Ebanistería y Gabinetes","Albañilería","Construcción General","Framing y Drywall","Techos y Sellado de Techos","Pintura Interior y Exterior",
+"Excavación y Equipo Pesado","Soldadura y Herrería",
+"Plomería","Electricidad","Energía Solar y Lavado Placas Solares","Generadores y Baterías","A/C y Refrigeración","Censo de Carga y Certificaciones",
+"Cerrajería Hogar y Auto","Cristales y Hojalatería",
+"Jardinería y Landscaping","Control de Plagas","Pressure Washing y Lavado a Presión","Piscinas y Limpieza de Piscinas",
+"Mecánica y Gomera","Mecánica Móvil","Grúas","Transporte, Taxi y Diligencias","Entregas y Farmacia",
+"Reparación Enseres Eléctricos","Reparación Lavadoras y Secadoras","Técnicos de Neveras y Calentadores",
+"Limpieza Residencial y Comercial","Belleza, Barbería y Uñas","Mascotas y Grooming","Comida y Catering","Tecnología y Celulares","Otros Servicios"
+];
+const EMERGENCY_CATS=["Electricidad","Plomería","Cerrajería Hogar y Auto","Transporte, Taxi y Diligencias","A/C y Refrigeración","Cuidado Adulto Mayor y Encamados"];
+
 let data=[];
 function normalize(s){return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
 function cleanPhone(p){if(!p)return'';let d=(''+p).replace(/\D/g,'');if(d.length===10)d='1'+d;return d;}
-function containsRoot(txt,q){if(!q)return true;if(txt.includes(q))return true;const roots=['ebanist','albanil','plomer','jardin','solar','lavador','enseres','piscin','enferm','cuidador','cerraj','generador','excav','plaga','framing','drywall','mascota','grooming','construccion','gabinete'];for(let r of roots){if(q.includes(r)&&txt.includes(r))return true;}return false;}
+function containsRoot(txt,q){if(!q)return true;if(txt.includes(q))return true;const roots=['ebanist','albanil','plomer','jardin','solar','lavador','enseres','piscin','enferm','cuidador','cerraj','generador','excav','plaga','framing','drywall','mascota','grooming','construccion','gabinete','taxi','diligencia','mecanica','gomera','grua','cristal','encamado','techo','pintura','pressure','lavadora','nevera','transporte','farmacia'];for(let r of roots){if(q.includes(r)&&txt.includes(r))return true;}return false;}
 function parseCSV(t){const lines=t.split(/\r?\n/);const rows=[];for(let line of lines){if(!line.trim())continue;const res=[];let cur='',inQ=false;for(let i=0;i<line.length;i++){const c=line[i];if(c=='"'){if(inQ&&line[i+1]=='"'){cur+='"';i++;}else{inQ=!inQ;}}else if(c==','&&!inQ){res.push(cur.trim());cur='';}else{cur+=c;}}res.push(cur.trim());rows.push(res);}return rows;}
-function render(){const q=normalize(document.getElementById('search').value);const pf=document.getElementById('pueblo').value;const cf=document.getElementById('cat').value;const cfN=normalize(cf);let f=data.filter(d=>{const txt=normalize(d.nombre+" "+d.categoria+" "+d.pueblo+" "+d.descripcion+" "+d.dueno);const cat=normalize(d.categoria+" "+d.descripcion);const qM=!q||containsRoot(txt,q);const pM=!pf||pf==='Todo el Centro'||normalize(d.pueblo).includes(normalize(pf));let cM=true;if(cf){cM=containsRoot(cat,cfN)||containsRoot(txt,cfN);}return qM&&pM&&cM;});document.getElementById('stats').textContent=f.length+" negocios verificados";const grid=document.getElementById('grid');grid.innerHTML='';f.forEach(b=>{const hasFoto=b.foto&&b.foto.startsWith('http');const telC=cleanPhone(b.telefono);const waC=cleanPhone(b.whatsapp||b.telefono);const waT=encodeURIComponent('Hola '+b.nombre+', te vi en La Montaña Resuelve');const card=document.createElement('div');card.className="bg-white rounded-2xl shadow-sm overflow-hidden border";card.innerHTML=(hasFoto?'<img src="'+b.foto+'" class="w-full h-40 object-cover" onerror="this.style.display=\'none\'">':'')+'<div class="p-4"><div class="flex gap-2 mb-2 flex-wrap"><span class="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full">'+(b.pueblo||'')+'</span><span class="text-xs bg-amber-50 text-amber-700 px-2 py-1 rounded-full">'+(b.categoria||'')+'</span><span class="ml-auto text-xs bg-green-50 text-green-700 px-2 py-1 rounded-full">✓ Verificado</span></div><h3 class="font-bold text-[#1a2a4a]">'+b.nombre+'</h3><p class="text-xs text-gray-500">'+(b.dueno||'')+'</p><p class="text-xs font-mono mt-1">'+(b.telefono||'')+'</p><p class="text-sm mt-2">'+(b.descripcion||'')+'</p><div class="flex gap-2 mt-4"><a href="tel:+'+telC+'" class="flex-1 text-center bg-[#1a2a4a] text-white text-sm py-3 rounded-xl font-bold">📞 Llamar</a><a href="https://wa.me/'+waC+'?text='+waT+'" target="_blank" class="flex-1 text-center bg-[#25D366] text-white text-sm py-3 rounded-xl font-bold">WhatsApp</a></div></div>';grid.appendChild(card);});}
-async function load(){const dbg=document.getElementById('debug');try{const sheets=["Form Responses 2","Form Responses 1"];let all=[];for(let sName of sheets){try{const url='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?tqx=out:csv&sheet='+encodeURIComponent(sName)+'&t='+Date.now();const r=await fetch(url,{cache:'no-store'});const t=await r.text();if(t.includes('<!DOCTYPE')||t.includes('<HTML'))continue;const rows=parseCSV(t);if(rows.length>1)all=all.concat(rows.slice(1));}catch(e){}}const map=new Map();let list=all.map(r=>({nombre:(r[1]||'').trim(),dueno:(r[2]||'').trim(),pueblo:(r[3]||'').trim(),categoria:(r[4]||'').trim(),descripcion:(r[5]||'').trim(),telefono:(r[6]||'').trim(),whatsapp:(r[7]||'').trim(),facebook:(r[8]||'').trim(),foto:(r[10]||r[9]||'').trim()})).filter(d=>d.nombre && d.telefono && d.pueblo && d.categoria && d.telefono.length>=7 && !normalize(d.nombre).includes('nombre del negocio'));list.forEach(d=>{const k=normalize(d.nombre+'-'+d.telefono);if(!map.has(k))map.set(k,d);});data=Array.from(map.values());document.getElementById('status').textContent='Conectado en vivo ('+data.length+')';document.getElementById('status').className='text-xs bg-green-500 px-3 py-1 rounded-full text-white';dbg.textContent='✅ Público OK | Leídas SOLO 2 buenas (Form Responses 2 y 1) | Total: '+data.length+' negocios';dbg.className='mt-4 p-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-800';}catch(e){document.getElementById('status').textContent='Error: '+e.message;dbg.textContent='❌ '+e.message;dbg.className='mt-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-800';}render();}
-document.getElementById('search').addEventListener('input',render);document.getElementById('pueblo').addEventListener('change',render);document.getElementById('cat').addEventListener('change',render);load();
+
+function initCats(){const sel=document.getElementById('cat');CATEGORIAS.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o);});const eDiv=document.getElementById('emergencyBtns');EMERGENCY_CATS.forEach(c=>{const b=document.createElement('button');b.className='bg-red-600 text-white px-3 py-2 rounded-full text-xs font-bold';b.textContent=c.split(' ')[0];b.onclick=()=>{document.getElementById('cat').value=c;render();window.scrollTo({top:400,behavior:'smooth'});};eDiv.appendChild(b);});}
+
+function render(){const q=normalize(document.getElementById('search').value);const pf=document.getElementById('pueblo').value;const cf=document.getElementById('cat').value;const cfN=normalize(cf);const sort=document.getElementById('sort').value;let f=data.filter(d=>{const txt=normalize(d.nombre+" "+d.categoria+" "+d.pueblo+" "+d.descripcion+" "+d.dueno+" "+(d.categorias_extra||''));const cat=normalize(d.categoria+" "+d.descripcion+" "+(d.categorias_extra||''));const qM=!q||containsRoot(txt,q);const pM=!pf||pf==='Todo el Centro'||normalize(d.pueblo).includes(normalize(pf));let cM=true;if(cf){cM=containsRoot(cat,cfN)||containsRoot(txt,cfN);}return qM&&pM&&cM;});if(sort==='nombre')f.sort((a,b)=>a.nombre.localeCompare(b.nombre));document.getElementById('stats').textContent=f.length+" negocios verificados en La Montaña";const grid=document.getElementById('grid');grid.innerHTML='';f.forEach(b=>{const hasFoto=b.foto&&b.foto.startsWith('http');const telC=cleanPhone(b.telefono);const waC=cleanPhone(b.whatsapp||b.telefono);const waT=encodeURIComponent('Hola '+b.nombre+', te vi en La Montaña Resuelve');const isPRO=b.foto&&b.descripcion&&b.descripcion.length>20;const card=document.createElement('div');card.className="bg-white rounded-2xl shadow-sm overflow-hidden border hover:shadow-md transition";card.innerHTML=(hasFoto?'<img src="'+b.foto+'" class="w-full h-48 object-cover" loading="lazy" onerror="this.style.display=\'none\'">':'<div class="w-full h-20 bg-gradient-to-r from-[#1a2a4a] to-blue-600"></div>')+'<div class="p-4"><div class="flex gap-2 mb-2 flex-wrap"><span class="text-[10px] bg-blue-50 text-blue-700 px-2 py-1 rounded-full">'+(b.pueblo||'')+'</span><span class="text-[10px] bg-amber-50 text-amber-700 px-2 py-1 rounded-full">'+(b.categoria||'')+'</span>'+(isPRO?'<span class="text-[10px] bg-yellow-400 text-black px-2 py-1 rounded-full font-bold">⭐ PRO</span>':'')+'<span class="ml-auto text-[10px] bg-green-50 text-green-700 px-2 py-1 rounded-full">✓ Verificado</span></div><h3 class="font-bold text-[#1a2a4a] text-[15px]">'+b.nombre+'</h3><p class="text-xs text-gray-500">'+(b.dueno||'')+'</p><p class="text-xs font-mono mt-1 text-gray-700">'+(b.telefono||'')+'</p><p class="text-sm mt-2 text-gray-600 line-clamp-3">'+(b.descripcion||'')+'</p>'+(b.categorias_extra?'<p class="text-[10px] text-gray-400 mt-1">+ '+(b.categorias_extra)+'</p>':'')+'<div class="flex gap-2 mt-4"><a href="tel:+'+telC+'" class="flex-1 text-center bg-[#1a2a4a] text-white text-sm py-3 rounded-xl font-bold">📞 Llamar</a><a href="https://wa.me/'+waC+'?text='+waT+'" target="_blank" class="flex-1 text-center bg-[#25D366] text-white text-sm py-3 rounded-xl font-bold">WhatsApp</a></div>'+(b.facebook?'<a href="'+b.facebook+'" target="_blank" class="block text-center text-xs text-blue-600 mt-2 underline">Ver Facebook / Más info</a>':'')+'</div>';grid.appendChild(card);});}
+
+async function load(){const dbg=document.getElementById('debug');try{const sheets=["Form Responses 2","Form Responses 1"];let all=[];for(let sName of sheets){try{const url='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?tqx=out:csv&sheet='+encodeURIComponent(sName)+'&t='+Date.now();const r=await fetch(url,{cache:'no-store'});const t=await r.text();if(t.includes('<!DOCTYPE')||t.includes('<HTML'))continue;const rows=parseCSV(t);if(rows.length>1)all=all.concat(rows.slice(1));}catch(e){}}const map=new Map();let list=all.map(r=>({nombre:(r[1]||'').trim(),dueno:(r[2]||'').trim(),pueblo:(r[3]||'').trim(),categoria:(r[4]||'').trim(),descripcion:(r[5]||'').trim(),telefono:(r[6]||'').trim(),whatsapp:(r[7]||'').trim(),facebook:(r[8]||'').trim(),foto:(r[10]||r[9]||'').trim(),categorias_extra:(r[11]||'').trim()})).filter(d=>d.nombre && d.telefono && d.pueblo && d.telefono.length>=7 && !normalize(d.nombre).includes('nombre del negocio'));list.forEach(d=>{const k=normalize(d.nombre+'-'+d.telefono);if(!map.has(k))map.set(k,d);});data=Array.from(map.values());document.getElementById('status').textContent='Conectado ('+data.length+')';document.getElementById('status').className='text-xs bg-green-500 px-3 py-1 rounded-full text-white';dbg.innerHTML='✅ V22 PWA | 2 hojas | Total: '+data.length+' | Categorías: '+CATEGORIAS.length+'<br><span class="text-[11px]">Para instalar: Android menú → Instalar app. iPhone Compartir → Añadir a inicio</span>';dbg.className='mt-4 p-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-800';}catch(e){document.getElementById('status').textContent='Error: '+e.message;}render();}
+
+// PWA Install
+let deferredPrompt;const installBtn=document.getElementById('installBtn');window.addEventListener('beforeinstallprompt',(e)=>{e.preventDefault();deferredPrompt=e;installBtn.classList.remove('hidden');});installBtn.addEventListener('click',async()=>{if(deferredPrompt){deferredPrompt.prompt();const {outcome}=await deferredPrompt.userChoice;deferredPrompt=null;installBtn.classList.add('hidden');}});if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js');}
+
+document.getElementById('search').addEventListener('input',render);document.getElementById('pueblo').addEventListener('change',render);document.getElementById('cat').addEventListener('change',render);document.getElementById('sort').addEventListener('change',render);initCats();load();
 </script>
-<div class="max-w-5xl mx-auto p-4 text-center"><a href="https://docs.google.com/forms/d/14vyiDSWsfO1rnnh8MkUUkgCZbsQ0sYmFmXQzRgm3aAo/viewform" target="_blank" class="inline-block bg-[#1a2a4a] text-white px-6 py-3 rounded-xl font-bold">➕ Registrar negocio GRATIS</a><p class="text-xs text-gray-400 mt-2">V21 FINAL - Solo 2 pestañas buenas + filtro completo - Sheet 1HfQxw</p></div>
-</body></html>
+</body>
+</html>
