@@ -72,13 +72,121 @@ let data=[];
 function normalize(s){return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
 function cleanPhone(p){if(!p)return'';let d=(''+p).replace(/\D/g,'');if(d.length===10)d='1'+d;return d;}
 function containsRoot(txt,q){if(!q)return true;if(txt.includes(q))return true;const roots=['ebanist','albanil','plomer','jardin','solar','lavador','enseres','piscin','enferm','cuidador','cerraj','generador','excav','plaga','framing','drywall','mascota','grooming','construccion','gabinete','taxi','diligencia','mecanica','gomera','grua','cristal','encamado','techo','pintura','pressure','lavadora','nevera','transporte','farmacia'];for(let r of roots){if(q.includes(r)&&txt.includes(r))return true;}return false;}
-function parseCSV(t){const lines=t.split(/\r?\n/);const rows=[];for(let line of lines){if(!line.trim())continue;const res=[];let cur='',inQ=false;for(let i=0;i<line.length;i++){const c=line[i];if(c=='"'){if(inQ&&line[i+1]=='"'){cur+='"';i++;}else{inQ=!inQ;}}else if(c==','&&!inQ){res.push(cur.trim());cur='';}else{cur+=c;}}res.push(cur.trim());rows.push(res);}return rows;}
+function parseCSV(text){
+  const rows=[];
+  let row=[];
+  let field='';
+  let inQuotes=false;
+
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    const next=text[i+1];
+
+    if(c==='"'){
+      if(inQuotes && next==='"'){
+        field+='"';
+        i++;
+      }else{
+        inQuotes=!inQuotes;
+      }
+    }else if(c===',' && !inQuotes){
+      row.push(field.trim());
+      field='';
+    }else if((c==='\n' || c==='\r') && !inQuotes){
+      if(c==='\r' && next==='\n') i++;
+      row.push(field.trim());
+      field='';
+      if(row.some(value=>value!=='')) rows.push(row);
+      row=[];
+    }else{
+      field+=c;
+    }
+  }
+
+  row.push(field.trim());
+  if(row.some(value=>value!=='')) rows.push(row);
+  return rows;
+}
 
 function initCats(){const sel=document.getElementById('cat');CATEGORIAS.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o);});const eDiv=document.getElementById('emergencyBtns');EMERGENCY_CATS.forEach(c=>{const b=document.createElement('button');b.className='bg-red-600 text-white px-3 py-2 rounded-full text-xs font-bold';b.textContent=c.split(' ')[0];b.onclick=()=>{document.getElementById('cat').value=c;render();window.scrollTo({top:400,behavior:'smooth'});};eDiv.appendChild(b);});}
 
 function render(){const q=normalize(document.getElementById('search').value);const pf=document.getElementById('pueblo').value;const cf=document.getElementById('cat').value;const cfN=normalize(cf);const sort=document.getElementById('sort').value;let f=data.filter(d=>{const txt=normalize(d.nombre+" "+d.categoria+" "+d.pueblo+" "+d.descripcion+" "+d.dueno+" "+(d.categorias_extra||''));const cat=normalize(d.categoria+" "+d.descripcion+" "+(d.categorias_extra||''));const qM=!q||containsRoot(txt,q);const pM=!pf||pf==='Todo el Centro'||normalize(d.pueblo).includes(normalize(pf));let cM=true;if(cf){cM=containsRoot(cat,cfN)||containsRoot(txt,cfN);}return qM&&pM&&cM;});if(sort==='nombre')f.sort((a,b)=>a.nombre.localeCompare(b.nombre));document.getElementById('stats').textContent=f.length+" negocios verificados en La Montaña";const grid=document.getElementById('grid');grid.innerHTML='';f.forEach(b=>{const hasFoto=b.foto&&b.foto.startsWith('http');const telC=cleanPhone(b.telefono);const waC=cleanPhone(b.whatsapp||b.telefono);const waT=encodeURIComponent('Hola '+b.nombre+', te vi en La Montaña Resuelve');const isPRO=b.foto&&b.descripcion&&b.descripcion.length>20;const card=document.createElement('div');card.className="bg-white rounded-2xl shadow-sm overflow-hidden border hover:shadow-md transition";card.innerHTML=(hasFoto?'<img src="'+b.foto+'" class="w-full h-48 object-cover" loading="lazy" onerror="this.style.display=\'none\'">':'<div class="w-full h-20 bg-gradient-to-r from-[#1a2a4a] to-blue-600"></div>')+'<div class="p-4"><div class="flex gap-2 mb-2 flex-wrap"><span class="text-[10px] bg-blue-50 text-blue-700 px-2 py-1 rounded-full">'+(b.pueblo||'')+'</span><span class="text-[10px] bg-amber-50 text-amber-700 px-2 py-1 rounded-full">'+(b.categoria||'')+'</span>'+(isPRO?'<span class="text-[10px] bg-yellow-400 text-black px-2 py-1 rounded-full font-bold">⭐ PRO</span>':'')+'<span class="ml-auto text-[10px] bg-green-50 text-green-700 px-2 py-1 rounded-full">✓ Verificado</span></div><h3 class="font-bold text-[#1a2a4a] text-[15px]">'+b.nombre+'</h3><p class="text-xs text-gray-500">'+(b.dueno||'')+'</p><p class="text-xs font-mono mt-1 text-gray-700">'+(b.telefono||'')+'</p><p class="text-sm mt-2 text-gray-600 line-clamp-3">'+(b.descripcion||'')+'</p>'+(b.categorias_extra?'<p class="text-[10px] text-gray-400 mt-1">+ '+(b.categorias_extra)+'</p>':'')+'<div class="flex gap-2 mt-4"><a href="tel:+'+telC+'" class="flex-1 text-center bg-[#1a2a4a] text-white text-sm py-3 rounded-xl font-bold">📞 Llamar</a><a href="https://wa.me/'+waC+'?text='+waT+'" target="_blank" class="flex-1 text-center bg-[#25D366] text-white text-sm py-3 rounded-xl font-bold">WhatsApp</a></div>'+(b.facebook?'<a href="'+b.facebook+'" target="_blank" class="block text-center text-xs text-blue-600 mt-2 underline">Ver Facebook / Más info</a>':'')+'</div>';grid.appendChild(card);});}
 
-async function load(){const dbg=document.getElementById('debug');try{const sheets=["Form Responses 2","Form Responses 1"];let all=[];for(let sName of sheets){try{const url='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?tqx=out:csv&sheet='+encodeURIComponent(sName)+'&t='+Date.now();const r=await fetch(url,{cache:'no-store'});const t=await r.text();if(t.includes('<!DOCTYPE')||t.includes('<HTML'))continue;const rows=parseCSV(t);if(rows.length>1)all=all.concat(rows.slice(1));}catch(e){}}const map=new Map();let list=all.map(r=>({nombre:(r[1]||'').trim(),dueno:(r[2]||'').trim(),pueblo:(r[3]||'').trim(),categoria:(r[4]||'').trim(),descripcion:(r[5]||'').trim(),telefono:(r[6]||'').trim(),whatsapp:(r[7]||'').trim(),facebook:(r[8]||'').trim(),foto:(r[10]||r[9]||'').trim(),categorias_extra:(r[11]||'').trim()})).filter(d=>d.nombre && d.telefono && d.pueblo && d.telefono.length>=7 && !normalize(d.nombre).includes('nombre del negocio'));list.forEach(d=>{const k=normalize(d.nombre+'-'+d.telefono);if(!map.has(k))map.set(k,d);});data=Array.from(map.values());document.getElementById('status').textContent='Conectado ('+data.length+')';document.getElementById('status').className='text-xs bg-green-500 px-3 py-1 rounded-full text-white';dbg.innerHTML='✅ V22 PWA | 2 hojas | Total: '+data.length+' | Categorías: '+CATEGORIAS.length+'<br><span class="text-[11px]">Para instalar: Android menú → Instalar app. iPhone Compartir → Añadir a inicio</span>';dbg.className='mt-4 p-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-800';}catch(e){document.getElementById('status').textContent='Error: '+e.message;}render();}
+async function load(){
+  const dbg=document.getElementById('debug');
+  const sources=[
+    // "Para Web" es la pestaña creada como espejo de Form Responses 3.
+    {sheet:'Para Web', telefono:7, whatsapp:6, facebook:8},
+    // Respaldo directo de las respuestas nuevas; evita depender de la fórmula espejo.
+    {sheet:'Form Responses 3', telefono:7, whatsapp:6, facebook:8},
+    // Compatibilidad con las pestañas antiguas, cuyo orden de teléfono/WhatsApp era distinto.
+    {sheet:'Form Responses 2', telefono:6, whatsapp:7, facebook:8},
+    {sheet:'Form Responses 1', telefono:6, whatsapp:7, facebook:8}
+  ];
+
+  try{
+    const records=[];
+
+    for(const source of sources){
+      try{
+        const url='https://docs.google.com/spreadsheets/d/'+SHEET_ID+
+          '/gviz/tq?tqx=out:csv&sheet='+encodeURIComponent(source.sheet)+'&t='+Date.now();
+        const response=await fetch(url,{cache:'no-store'});
+        const text=await response.text();
+
+        if(!response.ok || text.includes('<!DOCTYPE') || text.includes('<HTML')) continue;
+
+        const rows=parseCSV(text);
+        if(rows.length<=1) continue;
+
+        for(const row of rows.slice(1)){
+          const facebook=(row[source.facebook]||'').trim();
+          records.push({
+            nombre:(row[1]||'').trim(),
+            dueno:(row[2]||'').trim(),
+            pueblo:(row[3]||'').trim(),
+            categoria:(row[4]||'').trim(),
+            descripcion:(row[5]||'').trim(),
+            telefono:(row[source.telefono]||'').trim(),
+            whatsapp:(row[source.whatsapp]||'').trim(),
+            facebook:/^https?:\/\//i.test(facebook) ? facebook : '',
+            foto:'',
+            categorias_extra:''
+          });
+        }
+      }catch(error){
+        console.warn('No se pudo leer '+source.sheet,error);
+      }
+    }
+
+    const uniques=new Map();
+    for(const record of records){
+      const valid=record.nombre && record.telefono && record.pueblo &&
+        record.telefono.replace(/\D/g,'').length>=7 &&
+        !normalize(record.nombre).includes('nombre del negocio');
+      if(!valid) continue;
+
+      const key=normalize(record.nombre+'-'+record.telefono.replace(/\D/g,''));
+      if(!uniques.has(key)) uniques.set(key,record);
+    }
+
+    data=Array.from(uniques.values());
+    document.getElementById('status').textContent='Conectado ('+data.length+')';
+    document.getElementById('status').className='text-xs bg-green-500 px-3 py-1 rounded-full text-white';
+    dbg.innerHTML='✅ V23 | Datos sincronizados: '+data.length+
+      ' | Fuentes: respuestas nuevas y respaldo histórico'+
+      '<br><span class="text-[11px]">Para instalar: Android menú → Instalar app. iPhone Compartir → Añadir a inicio</span>';
+    dbg.className='mt-4 p-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-800';
+  }catch(error){
+    console.error(error);
+    document.getElementById('status').textContent='Error al cargar directorio';
+    document.getElementById('status').className='text-xs bg-red-600 px-3 py-1 rounded-full text-white';
+    dbg.textContent='No se pudieron cargar los datos. Intenta actualizar la página.';
+    dbg.className='mt-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-800';
+  }
+
+  render();
+}
 
 // PWA Install
 let deferredPrompt;const installBtn=document.getElementById('installBtn');window.addEventListener('beforeinstallprompt',(e)=>{e.preventDefault();deferredPrompt=e;installBtn.classList.remove('hidden');});installBtn.addEventListener('click',async()=>{if(deferredPrompt){deferredPrompt.prompt();const {outcome}=await deferredPrompt.userChoice;deferredPrompt=null;installBtn.classList.add('hidden');}});if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js');}
