@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "businessName": "Santiago Electrical Solutions",
+    "phone": "7872150552",
+    "whatsapp": null,
+    "town": "Barranquitas",
+    "coverageTowns": [
+      "Barranquitas",
+      "Otros pueblos del área central",
+      "Todo el área"
+    ],
+    "primaryCategory": "Electricidad",
+    "serviceTags": [
+      "Electricidad Comercial & Residencial"
+    ],
+    "description": "Perito Electricista"
+  },
+  {
+    "id": 2,
+    "businessName": "AJ Exterminating",
+    "phone": "939-280-5620",
+    "whatsapp": null,
+    "town": "Comerío",
+    "coverageTowns": [
+      "Aibonito",
+      "Barranquitas",
+      "Orocovis",
+      "Corozal",
+      "Comerío",
+      "Naranjito",
+      "Todo el área"
+    ],
+    "primaryCategory": "Fumigación / Control de plagas",
+    "serviceTags": [
+      "Control de Plagas"
+    ],
+    "description": "AJ Exterminating ofrece servicios profesionales de control y manejo integrado de plagas para hogares y negocios. Brindamos soluciones efectivas, seguras y confiables para mantener tus espacios libres de plagas."
+  },
+  {
+    "id": 3,
+    "businessName": "4J Pest Control",
+    "phone": "939-400-4337",
+    "whatsapp": null,
+    "town": "Barranquitas",
+    "coverageTowns": [
+      "Aibonito",
+      "Barranquitas",
+      "Orocovis",
+      "Corozal",
+      "Comerío",
+      "Naranjito",
+      "Otros pueblos del área central",
+      "Todo el área"
+    ],
+    "primaryCategory": "Fumigación / Control de plagas",
+    "serviceTags": [
+      "Control de plagas y prevención en interiores y exteriores de casas,comercios y otros"
+    ],
+    "description": null
+  }
+]

@@ -1,0 +1,16 @@
+{
+  "name": "La Montaña Resuelve",
+  "short_name": "La Montaña",
+  "description": "Directorio transparente de proveedores de servicios del área central de Puerto Rico.",
+  "lang": "es-PR",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#fbfaf7",
+  "theme_color": "#1d3154",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
